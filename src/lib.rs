@@ -13,7 +13,8 @@ pub struct Counter<'a, T: 'a> {
     /// HashMap backing this Counter
     ///
     /// Public to expose the HashMap API for direct manipulation.
-    pub hashmap: HashMap<&'a T, usize>,
+    /// That said, this may change in the future to some other mapping type / trait.
+    pub map: HashMap<&'a T, usize>,
 }
 
 impl<'a, T> Counter<'a, T>
@@ -21,7 +22,7 @@ impl<'a, T> Counter<'a, T>
 {
     /// Create a new, empty `Counter`
     pub fn new() -> Counter<'a, T> {
-        Counter { hashmap: HashMap::new() }
+        Counter { map: HashMap::new() }
     }
 
     /// Create a new `Counter` initialized with the given iterable
@@ -38,7 +39,7 @@ impl<'a, T> Counter<'a, T>
         where I: IntoIterator<Item = &'a T>
     {
         for item in iterable.into_iter() {
-            let entry = self.hashmap.entry(item).or_insert(0);
+            let entry = self.map.entry(item).or_insert(0);
             *entry += 1;
         }
     }
@@ -51,22 +52,18 @@ impl<'a, T> Counter<'a, T>
     {
         for item in iterable.into_iter() {
             let mut remove = false;
-            if let Some(entry) = self.hashmap.get_mut(item) {
+            if let Some(entry) = self.map.get_mut(item) {
                 if *entry > 0 {
                     *entry -= 1;
                 }
                 remove = *entry == 0;
             }
             if remove {
-                self.hashmap.remove(item);
+                self.map.remove(item);
             }
         }
     }
-}
 
-impl<'a, T> Counter<'a, T>
-    where T: Ord + Hash
-{
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
     /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
@@ -74,15 +71,14 @@ impl<'a, T> Counter<'a, T>
     /// to create some kind of MostCommon struct which implements `Iterator` which
     /// does all the necessary work on demand. PRs appreciated here!
     pub fn most_common(&self) -> ::std::vec::IntoIter<(&&T, &usize)> {
-        let mut items = self.hashmap.iter().collect::<Vec<_>>();
+        let mut items = self.map.iter().collect::<Vec<_>>();
         items.sort_by(|&(_, a), &(_, b)| b.cmp(a));
         items.into_iter()
     }
 }
 
 impl<'a, T> Add for Counter<'a, T>
-    where T: Clone,
-          &'a T: Hash + Eq
+    where T: Clone + Hash + Eq
 {
     type Output = Counter<'a, T>;
 
@@ -91,8 +87,8 @@ impl<'a, T> Add for Counter<'a, T>
     /// `out = c + d;` -> `out[x] == c[x] + d[x]`
     fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         let mut counter = self.clone();
-        for (key, value) in rhs.hashmap.iter() {
-            let entry = counter.hashmap.entry(key).or_insert(0);
+        for (key, value) in rhs.map.iter() {
+            let entry = counter.map.entry(key).or_insert(0);
             *entry += *value;
         }
         counter
@@ -100,8 +96,7 @@ impl<'a, T> Add for Counter<'a, T>
 }
 
 impl<'a, T> Sub for Counter<'a, T>
-    where T: Clone,
-          &'a T: Hash + Eq
+    where T: Clone + Hash + Eq
 {
     type Output = Counter<'a, T>;
 
@@ -110,9 +105,9 @@ impl<'a, T> Sub for Counter<'a, T>
     /// `out = c - d;` -> `out[x] == c[x] - d[x]`
     fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         let mut counter = self.clone();
-        for (key, value) in rhs.hashmap.iter() {
+        for (key, value) in rhs.map.iter() {
             let mut remove = false;
-            if let Some(entry) = counter.hashmap.get_mut(key) {
+            if let Some(entry) = counter.map.get_mut(key) {
                 if *entry >= *value {
                     *entry -= *value;
                 } else {
@@ -123,7 +118,7 @@ impl<'a, T> Sub for Counter<'a, T>
                 }
             }
             if remove {
-                counter.hashmap.remove(key);
+                counter.map.remove(key);
             }
         }
         counter
@@ -131,8 +126,7 @@ impl<'a, T> Sub for Counter<'a, T>
 }
 
 impl<'a, T> BitAnd for Counter<'a, T>
-    where T: Clone,
-          &'a T: Hash + Eq
+    where T: Clone + Hash + Eq
 {
     type Output = Counter<'a, T>;
 
@@ -141,20 +135,24 @@ impl<'a, T> BitAnd for Counter<'a, T>
     /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
     fn bitand(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         use std::cmp::min;
+        use std::collections::HashSet;
 
-        let mut counter = self.clone();
-        for (key, value) in rhs.hashmap.iter() {
-            if let Some(entry) = counter.hashmap.get_mut(key) {
-                *entry = min(*entry, *value);
-            }
+        let self_keys = self.map.keys().collect::<HashSet<_>>();
+        let other_keys = rhs.map.keys().collect::<HashSet<_>>();
+        let both_keys = self_keys.intersection(&other_keys);
+
+        let mut counter = Counter::new();
+        for key in both_keys {
+            counter.map.insert(**key,
+                               min(*self.map.get(*key).unwrap(), *rhs.map.get(*key).unwrap()));
         }
+
         counter
     }
 }
 
 impl<'a, T> BitOr for Counter<'a, T>
-    where T: Clone,
-          &'a T: Hash + Eq
+    where T: Clone + Hash + Eq
 {
     type Output = Counter<'a, T>;
 
@@ -165,8 +163,8 @@ impl<'a, T> BitOr for Counter<'a, T>
         use std::cmp::max;
 
         let mut counter = self.clone();
-        for (key, value) in rhs.hashmap.iter() {
-            let entry = counter.hashmap.entry(key).or_insert(0);
+        for (key, value) in rhs.map.iter() {
+            let entry = counter.map.entry(key).or_insert(0);
             *entry = max(*entry, *value);
         }
         counter
