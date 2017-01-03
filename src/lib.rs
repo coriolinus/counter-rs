@@ -277,6 +277,14 @@ mod tests {
     }
 
     #[test]
+    fn test_most_common_tiebreaker_reversed() {
+        let counter = Counter::init("eaddbbccc".chars());
+        let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a)).collect::<Vec<_>>();
+        let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
+        assert!(by_common == expected);
+    }
+
+    #[test]
     fn test_most_common_ordered() {
         let counter = Counter::init("eaddbbccc".chars());
         let by_common = counter.most_common_ordered().collect::<Vec<_>>();
@@ -322,5 +330,12 @@ mod tests {
         let out = d | e;
         let expected = Counter::init("abbcccddd".chars());
         assert!(out == expected);
+    }
+
+    #[test]
+    fn test_delete_key_from_backing_map() {
+        let mut counter = Counter::init("aa-bb-cc".chars());
+        counter.map.remove(&'-');
+        assert!(counter == Counter::init("aabbcc".chars()));
     }
 }
