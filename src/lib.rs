@@ -171,9 +171,23 @@ impl<'a, T> BitOr for Counter<'a, T>
     }
 }
 
-
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
     #[test]
-    fn it_works() {}
+    fn test_creation() {
+        let _: Counter<usize> = Counter::new();
+
+        let initializer = &[1];
+        let counter = Counter::init(initializer);
+
+        let mut expected = HashMap::new();
+        static ONE: usize = 1;
+        expected.insert(&ONE, 1);
+        assert!(counter.map == expected)
+    }
+
+
 }
