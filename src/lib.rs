@@ -37,14 +37,30 @@ impl<'a, T> Counter<'a, T>
     pub fn update<I>(&mut self, iterable: I)
         where I: IntoIterator<Item = &'a T>
     {
-        unimplemented!()
+        for item in iterable.into_iter() {
+            let entry = self.hashmap.entry(item).or_insert(0);
+            *entry += 1;
+        }
     }
 
     /// Remove the counts of the elements from the given iterable to this counter
+    ///
+    /// Non-positive counts are automatically removed
     pub fn subtract<I>(&mut self, iterable: I)
         where I: IntoIterator<Item = &'a T>
     {
-        unimplemented!()
+        for item in iterable.into_iter() {
+            let mut remove = false;
+            if let Some(entry) = self.hashmap.get_mut(item) {
+                if *entry >= 0 {
+                    *entry -= 1;
+                }
+                remove = *entry == 0;
+            }
+            if remove {
+                self.hashmap.remove(item);
+            }
+        }
     }
 }
 
