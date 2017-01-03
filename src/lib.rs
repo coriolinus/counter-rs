@@ -205,4 +205,12 @@ mod tests {
             .collect();
         assert!(counter.map == expected);
     }
+
+    #[test]
+    fn test_subtract() {
+        let mut counter = Counter::init("abbccc".chars());
+        counter.subtract("bbccddd".chars());
+        let expected: HashMap<char, usize> = [('a', 1), ('c', 1)].iter().cloned().collect();
+        assert!(counter.map == expected);
+    }
 }
