@@ -9,25 +9,25 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, BitAnd, BitOr};
 
 #[derive(Clone)]
-pub struct Counter<'a, T: 'a> {
+pub struct Counter<T> {
     /// HashMap backing this Counter
     ///
     /// Public to expose the HashMap API for direct manipulation.
     /// That said, this may change in the future to some other mapping type / trait.
-    pub map: HashMap<&'a T, usize>,
+    pub map: HashMap<T, usize>,
 }
 
-impl<'a, T> Counter<'a, T>
-    where T: 'a + Hash + Eq
+impl<T> Counter<T>
+    where T: Hash + Eq
 {
     /// Create a new, empty `Counter`
-    pub fn new() -> Counter<'a, T> {
+    pub fn new() -> Counter<T> {
         Counter { map: HashMap::new() }
     }
 
     /// Create a new `Counter` initialized with the given iterable
-    pub fn init<I>(iterable: I) -> Counter<'a, T>
-        where I: IntoIterator<Item = &'a T>
+    pub fn init<I>(iterable: I) -> Counter<T>
+        where I: IntoIterator<Item = T>
     {
         let mut counter = Counter::new();
         counter.update(iterable);
@@ -36,7 +36,7 @@ impl<'a, T> Counter<'a, T>
 
     /// Add the counts of the elements from the given iterable to this counter
     pub fn update<I>(&mut self, iterable: I)
-        where I: IntoIterator<Item = &'a T>
+        where I: IntoIterator<Item = T>
     {
         for item in iterable.into_iter() {
             let entry = self.map.entry(item).or_insert(0);
@@ -48,18 +48,18 @@ impl<'a, T> Counter<'a, T>
     ///
     /// Non-positive counts are automatically removed
     pub fn subtract<I>(&mut self, iterable: I)
-        where I: IntoIterator<Item = &'a T>
+        where I: IntoIterator<Item = T>
     {
         for item in iterable.into_iter() {
             let mut remove = false;
-            if let Some(entry) = self.map.get_mut(item) {
+            if let Some(entry) = self.map.get_mut(&item) {
                 if *entry > 0 {
                     *entry -= 1;
                 }
                 remove = *entry == 0;
             }
             if remove {
-                self.map.remove(item);
+                self.map.remove(&item);
             }
         }
     }
@@ -70,40 +70,40 @@ impl<'a, T> Counter<'a, T>
     /// the vector, and returns an iterator over the vector. It would be much better
     /// to create some kind of MostCommon struct which implements `Iterator` which
     /// does all the necessary work on demand. PRs appreciated here!
-    pub fn most_common(&self) -> ::std::vec::IntoIter<(&&T, &usize)> {
+    pub fn most_common(&self) -> ::std::vec::IntoIter<(&T, &usize)> {
         let mut items = self.map.iter().collect::<Vec<_>>();
         items.sort_by(|&(_, a), &(_, b)| b.cmp(a));
         items.into_iter()
     }
 }
 
-impl<'a, T> Add for Counter<'a, T>
+impl<T> Add for Counter<T>
     where T: Clone + Hash + Eq
 {
-    type Output = Counter<'a, T>;
+    type Output = Counter<T>;
 
     /// Add two counters together.
     ///
     /// `out = c + d;` -> `out[x] == c[x] + d[x]`
-    fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
+    fn add(self, rhs: Counter<T>) -> Counter<T> {
         let mut counter = self.clone();
         for (key, value) in rhs.map.iter() {
-            let entry = counter.map.entry(key).or_insert(0);
+            let entry = counter.map.entry(key.clone()).or_insert(0);
             *entry += *value;
         }
         counter
     }
 }
 
-impl<'a, T> Sub for Counter<'a, T>
+impl<T> Sub for Counter<T>
     where T: Clone + Hash + Eq
 {
-    type Output = Counter<'a, T>;
+    type Output = Counter<T>;
 
     /// Subtract (keeping only positive values).
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]`
-    fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
+    fn sub(self, rhs: Counter<T>) -> Counter<T> {
         let mut counter = self.clone();
         for (key, value) in rhs.map.iter() {
             let mut remove = false;
@@ -125,15 +125,15 @@ impl<'a, T> Sub for Counter<'a, T>
     }
 }
 
-impl<'a, T> BitAnd for Counter<'a, T>
+impl<T> BitAnd for Counter<T>
     where T: Clone + Hash + Eq
 {
-    type Output = Counter<'a, T>;
+    type Output = Counter<T>;
 
     /// Intersection
     ///
     /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
-    fn bitand(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
+    fn bitand(self, rhs: Counter<T>) -> Counter<T> {
         use std::cmp::min;
         use std::collections::HashSet;
 
@@ -143,7 +143,7 @@ impl<'a, T> BitAnd for Counter<'a, T>
 
         let mut counter = Counter::new();
         for key in both_keys {
-            counter.map.insert(**key,
+            counter.map.insert((*key).clone(),
                                min(*self.map.get(*key).unwrap(), *rhs.map.get(*key).unwrap()));
         }
 
@@ -151,20 +151,20 @@ impl<'a, T> BitAnd for Counter<'a, T>
     }
 }
 
-impl<'a, T> BitOr for Counter<'a, T>
+impl<T> BitOr for Counter<T>
     where T: Clone + Hash + Eq
 {
-    type Output = Counter<'a, T>;
+    type Output = Counter<T>;
 
     /// Union
     ///
     /// `out = c | d;` -> `out[x] == max(c[x], d[x])`
-    fn bitor(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
+    fn bitor(self, rhs: Counter<T>) -> Counter<T> {
         use std::cmp::max;
 
         let mut counter = self.clone();
         for (key, value) in rhs.map.iter() {
-            let entry = counter.map.entry(key).or_insert(0);
+            let entry = counter.map.entry(key.clone()).or_insert(0);
             *entry = max(*entry, *value);
         }
         counter
