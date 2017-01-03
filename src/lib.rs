@@ -52,7 +52,7 @@ impl<'a, T> Counter<'a, T>
         for item in iterable.into_iter() {
             let mut remove = false;
             if let Some(entry) = self.hashmap.get_mut(item) {
-                if *entry >= 0 {
+                if *entry > 0 {
                     *entry -= 1;
                 }
                 remove = *entry == 0;
@@ -130,25 +130,47 @@ impl<'a, T> Sub for Counter<'a, T>
     }
 }
 
-impl<'a, T> BitAnd for Counter<'a, T> {
+impl<'a, T> BitAnd for Counter<'a, T>
+    where T: Clone,
+          &'a T: Hash + Eq
+{
     type Output = Counter<'a, T>;
 
     /// Intersection
     ///
     /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
     fn bitand(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
-        unimplemented!()
+        use std::cmp::min;
+
+        let mut counter = self.clone();
+        for (key, value) in rhs.hashmap.iter() {
+            if let Some(entry) = counter.hashmap.get_mut(key) {
+                *entry = min(*entry, *value);
+            }
+        }
+        counter
     }
 }
 
-impl<'a, T> BitOr for Counter<'a, T> {
+impl<'a, T> BitOr for Counter<'a, T>
+    where T: Clone,
+          &'a T: Hash + Eq
+{
     type Output = Counter<'a, T>;
 
     /// Union
     ///
     /// `out = c | d;` -> `out[x] == max(c[x], d[x])`
     fn bitor(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
-        unimplemented!()
+        use std::cmp::max;
+
+        let mut counter = self.clone();
+        for (key, value) in counter.hashmap.iter_mut() {
+            if let Some(r_entry) = rhs.hashmap.get(key) {
+                *value = max(*r_entry, *value);
+            }
+        }
+        counter
     }
 }
 
