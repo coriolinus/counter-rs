@@ -82,6 +82,32 @@ impl<T> Counter<T>
         items.sort_by(|&(_, a), &(_, b)| b.cmp(&a));
         items.into_iter()
     }
+
+
+    /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
+    ///
+    /// In the event that two keys have an equal frequency, use the supplied ordering function
+    /// to further arrange the results.
+    ///
+    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
+    /// the vector, and returns an iterator over the vector. It would be much better
+    /// to create some kind of MostCommon struct which implements `Iterator` which
+    /// does all the necessary work on demand. PRs appreciated here!
+    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> ::std::vec::IntoIter<(T, usize)>
+        where F: Fn(&T, &T) -> ::std::cmp::Ordering
+    {
+        use std::cmp::Ordering;
+
+        let mut items = self.map
+            .iter()
+            .map(|(key, &count)| (key.clone(), count))
+            .collect::<Vec<_>>();
+        items.sort_by(|&(ref a_item, a_count), &(ref b_item, b_count)| match b_count.cmp(&a_count) {
+            Ordering::Equal => tiebreaker(&a_item, &b_item),
+            unequal @ _ => unequal,
+        });
+        items.into_iter()
+    }
 }
 
 impl<T> Add for Counter<T>
@@ -226,6 +252,14 @@ mod tests {
         let counter = Counter::init("abbccc".chars());
         let by_common = counter.most_common().collect::<Vec<_>>();
         let expected = vec![('c', 3), ('b', 2), ('a', 1)];
+        assert!(by_common == expected);
+    }
+
+    #[test]
+    fn test_most_common_tiebreaker() {
+        let counter = Counter::init("eaddbbccc".chars());
+        let by_common = counter.most_common_tiebreaker(|&a, &b| a.cmp(&b)).collect::<Vec<_>>();
+        let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
     }
 }
