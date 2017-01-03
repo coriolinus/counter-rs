@@ -282,4 +282,24 @@ mod tests {
         let expected = Counter::init("abc".chars());
         assert!(out == expected);
     }
+
+    #[test]
+    fn test_intersection() {
+        let d = Counter::init("abbccc".chars());
+        let e = Counter::init("bccddd".chars());
+
+        let out = d & e;
+        let expected = Counter::init("bcc".chars());
+        assert!(out == expected);
+    }
+
+    #[test]
+    fn test_union() {
+        let d = Counter::init("abbccc".chars());
+        let e = Counter::init("bccddd".chars());
+
+        let out = d | e;
+        let expected = Counter::init("abbcccddd".chars());
+        assert!(out == expected);
+    }
 }
