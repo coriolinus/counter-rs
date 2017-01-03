@@ -277,6 +277,14 @@ mod tests {
     }
 
     #[test]
+    fn test_most_common_ordered() {
+        let counter = Counter::init("eaddbbccc".chars());
+        let by_common = counter.most_common_ordered().collect::<Vec<_>>();
+        let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
+        assert!(by_common == expected);
+    }
+
+    #[test]
     fn test_add() {
         let d = Counter::init("abbccc".chars());
         let e = Counter::init("bccddd".chars());
