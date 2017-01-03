@@ -69,7 +69,7 @@ impl<'a, T> Add for Counter<'a, T> {
 
     /// Add two counters together.
     ///
-    /// `out[x] == c[x] + d[x]`
+    /// `out = c + d;` -> `out[x] == c[x] + d[x]`
     fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
@@ -80,7 +80,7 @@ impl<'a, T> Sub for Counter<'a, T> {
 
     /// Subtract (keeping only positive values).
     ///
-    /// `out[x] == c[x] - d[x]`
+    /// `out = c - d;` -> `out[x] == c[x] - d[x]`
     fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
@@ -91,7 +91,7 @@ impl<'a, T> BitAnd for Counter<'a, T> {
 
     /// Intersection
     ///
-    /// `out[x] == min(c[x], d[x])`
+    /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
     fn bitand(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
@@ -102,7 +102,7 @@ impl<'a, T> BitOr for Counter<'a, T> {
 
     /// Union
     ///
-    /// `out[x] == max(c[x], d[x])`
+    /// `out = c | d;` -> `out[x] == max(c[x], d[x])`
     fn bitor(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
