@@ -87,7 +87,11 @@ impl<'a, T> Add for Counter<'a, T> {
     ///
     /// `out = c + d;` -> `out[x] == c[x] + d[x]`
     fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
-        unimplemented!()
+        let mut counter = self.clone();
+        for (key, value) in rhs.hashmap.items() {
+            let entry = self.hashmap.entry(key).or_insert(0);
+            *entry += value;
+        }
     }
 }
 
