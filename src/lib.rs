@@ -165,10 +165,9 @@ impl<'a, T> BitOr for Counter<'a, T>
         use std::cmp::max;
 
         let mut counter = self.clone();
-        for (key, value) in counter.hashmap.iter_mut() {
-            if let Some(r_entry) = rhs.hashmap.get(key) {
-                *value = max(*r_entry, *value);
-            }
+        for (key, value) in rhs.hashmap.iter() {
+            let entry = counter.hashmap.entry(key).or_insert(0);
+            *entry = max(*entry, *value);
         }
         counter
     }
