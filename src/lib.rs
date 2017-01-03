@@ -46,11 +46,21 @@ impl<'a, T> Counter<'a, T>
     {
         unimplemented!()
     }
+}
 
+impl<'a, T> Counter<'a, T>
+    where T: Ord + Hash
+{
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
-    /// TODO: create an actual iterator, not a vector
-    pub fn most_common(&self) -> Vec<(usize, T)> {
-        unimplemented!()
+    ///
+    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
+    /// the vector, and returns an iterator over the vector. It would be much better
+    /// to create some kind of MostCommon struct which implements `Iterator` which
+    /// does all the necessary work on demand. PRs appreciated here!
+    pub fn most_common(&self) -> ::std::vec::IntoIter<(&&T, &usize)> {
+        let mut items = self.hashmap.iter().collect::<Vec<_>>();
+        items.sort_by(|&(_, a), &(_, b)| b.cmp(a));
+        items.into_iter()
     }
 }
 
@@ -97,7 +107,6 @@ impl<'a, T> BitOr for Counter<'a, T> {
         unimplemented!()
     }
 }
-
 
 
 #[cfg(test)]
