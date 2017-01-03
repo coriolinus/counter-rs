@@ -9,23 +9,23 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, BitAnd, BitOr};
 
 #[derive(Clone)]
-pub struct Counter<T> {
+pub struct Counter<'a, T: 'a> {
     /// HashMap backing this Counter
     ///
     /// Public to expose the HashMap API for direct manipulation.
-    pub hashmap: HashMap<T, usize>,
+    pub hashmap: HashMap<&'a T, usize>,
 }
 
-impl<'a, T> Counter<T>
+impl<'a, T> Counter<'a, T>
     where T: 'a + Hash + Eq
 {
     /// Create a new, empty `Counter`
-    pub fn new() -> Counter<T> {
+    pub fn new() -> Counter<'a, T> {
         Counter { hashmap: HashMap::new() }
     }
 
     /// Create a new `Counter` initialized with the given iterable
-    pub fn init<I>(iterable: I) -> Counter<T>
+    pub fn init<I>(iterable: I) -> Counter<'a, T>
         where I: IntoIterator<Item = &'a T>
     {
         let mut counter = Counter::new();
@@ -54,49 +54,51 @@ impl<'a, T> Counter<T>
     }
 }
 
-impl<T> Add for Counter<T> {
-    type Output = Counter<T>;
+impl<'a, T> Add for Counter<'a, T> {
+    type Output = Counter<'a, T>;
 
     /// Add two counters together.
     ///
     /// `out[x] == c[x] + d[x]`
-    fn add(self, rhs: Counter<T>) -> Counter<T> {
+    fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
 }
 
-impl<T> Sub for Counter<T> {
-    type Output = Counter<T>;
+impl<'a, T> Sub for Counter<'a, T> {
+    type Output = Counter<'a, T>;
 
     /// Subtract (keeping only positive values).
     ///
     /// `out[x] == c[x] - d[x]`
-    fn sub(self, rhs: Counter<T>) -> Counter<T> {
+    fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
 }
 
-impl<T> BitAnd for Counter<T> {
-    type Output = Counter<T>;
+impl<'a, T> BitAnd for Counter<'a, T> {
+    type Output = Counter<'a, T>;
 
     /// Intersection
     ///
     /// `out[x] == min(c[x], d[x])`
-    fn bitand(self, rhs: Counter<T>) -> Counter<T> {
+    fn bitand(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
 }
 
-impl<T> BitOr for Counter<T> {
-    type Output = Counter<T>;
+impl<'a, T> BitOr for Counter<'a, T> {
+    type Output = Counter<'a, T>;
 
     /// Union
     ///
     /// `out[x] == max(c[x], d[x])`
-    fn bitor(self, rhs: Counter<T>) -> Counter<T> {
+    fn bitor(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         unimplemented!()
     }
 }
+
+
 
 #[cfg(test)]
 mod tests {
