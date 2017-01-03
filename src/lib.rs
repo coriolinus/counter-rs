@@ -63,16 +63,23 @@ impl<T> Counter<T>
             }
         }
     }
+}
 
+impl<T> Counter<T>
+    where T: Hash + Eq + Clone
+{
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
     /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
     /// the vector, and returns an iterator over the vector. It would be much better
     /// to create some kind of MostCommon struct which implements `Iterator` which
     /// does all the necessary work on demand. PRs appreciated here!
-    pub fn most_common(&self) -> ::std::vec::IntoIter<(&T, &usize)> {
-        let mut items = self.map.iter().collect::<Vec<_>>();
-        items.sort_by(|&(_, a), &(_, b)| b.cmp(a));
+    pub fn most_common(&self) -> ::std::vec::IntoIter<(T, usize)> {
+        let mut items = self.map
+            .iter()
+            .map(|(key, &count)| (key.clone(), count))
+            .collect::<Vec<_>>();
+        items.sort_by(|&(_, a), &(_, b)| b.cmp(&a));
         items.into_iter()
     }
 }
@@ -212,5 +219,13 @@ mod tests {
         counter.subtract("bbccddd".chars());
         let expected: HashMap<char, usize> = [('a', 1), ('c', 1)].iter().cloned().collect();
         assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_most_common() {
+        let counter = Counter::init("abbccc".chars());
+        let by_common = counter.most_common().collect::<Vec<_>>();
+        let expected = vec![('c', 3), ('b', 2), ('a', 1)];
+        assert!(by_common == expected);
     }
 }
