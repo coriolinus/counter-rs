@@ -80,7 +80,10 @@ impl<'a, T> Counter<'a, T>
     }
 }
 
-impl<'a, T> Add for Counter<'a, T> {
+impl<'a, T> Add for Counter<'a, T>
+    where T: Clone,
+          &'a T: Hash + Eq
+{
     type Output = Counter<'a, T>;
 
     /// Add two counters together.
@@ -88,25 +91,30 @@ impl<'a, T> Add for Counter<'a, T> {
     /// `out = c + d;` -> `out[x] == c[x] + d[x]`
     fn add(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
         let mut counter = self.clone();
-        for (key, value) in rhs.hashmap.items() {
-            let entry = self.hashmap.entry(key).or_insert(0);
-            *entry += value;
+        for (key, value) in rhs.hashmap.iter() {
+            let entry = counter.hashmap.entry(key).or_insert(0);
+            *entry += *value;
         }
+        counter
     }
 }
 
-impl<'a, T> Sub for Counter<'a, T> {
+impl<'a, T> Sub for Counter<'a, T>
+    where T: Clone,
+          &'a T: Hash + Eq
+{
     type Output = Counter<'a, T>;
 
     /// Subtract (keeping only positive values).
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]`
     fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
-        for (key, value) in rhs.hashmap.items() {
+        let mut counter = self.clone();
+        for (key, value) in rhs.hashmap.iter() {
             let mut remove = false;
-            if let Some(entry) = self.hashmap.get_mut(key) {
-                if *entry >= value {
-                    *entry -= value;
+            if let Some(entry) = counter.hashmap.get_mut(key) {
+                if *entry >= *value {
+                    *entry -= *value;
                 } else {
                     remove = true;
                 }
@@ -115,9 +123,10 @@ impl<'a, T> Sub for Counter<'a, T> {
                 }
             }
             if remove {
-                self.hashmap.remove(key);
+                counter.hashmap.remove(key);
             }
         }
+        counter
     }
 }
 
