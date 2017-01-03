@@ -75,12 +75,8 @@ impl<T> Counter<T>
     /// to create some kind of MostCommon struct which implements `Iterator` which
     /// does all the necessary work on demand. PRs appreciated here!
     pub fn most_common(&self) -> ::std::vec::IntoIter<(T, usize)> {
-        let mut items = self.map
-            .iter()
-            .map(|(key, &count)| (key.clone(), count))
-            .collect::<Vec<_>>();
-        items.sort_by(|&(_, a), &(_, b)| b.cmp(&a));
-        items.into_iter()
+        use std::cmp::Ordering;
+        self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
     }
 
 
@@ -107,6 +103,23 @@ impl<T> Counter<T>
             unequal @ _ => unequal,
         });
         items.into_iter()
+    }
+}
+
+impl<T> Counter<T>
+    where T: Hash + Eq + Clone + Ord
+{
+    /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
+    ///
+    /// In the event that two keys have an equal frequency, use the natural ordering of the keys
+    /// to further sort the results.
+    ///
+    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
+    /// the vector, and returns an iterator over the vector. It would be much better
+    /// to create some kind of MostCommon struct which implements `Iterator` which
+    /// does all the necessary work on demand. PRs appreciated here!
+    pub fn most_common_ordered(&self) -> ::std::vec::IntoIter<(T, usize)> {
+        self.most_common_tiebreaker(|ref a, ref b| a.cmp(&b))
     }
 }
 
