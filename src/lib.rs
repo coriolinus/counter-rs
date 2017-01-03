@@ -8,8 +8,8 @@ use std::hash::Hash;
 
 use std::ops::{Add, Sub, BitAnd, BitOr};
 
-#[derive(Clone)]
-pub struct Counter<T> {
+#[derive(Clone, PartialEq, Eq)]
+pub struct Counter<T: Hash + Eq> {
     /// HashMap backing this Counter
     ///
     /// Public to expose the HashMap API for direct manipulation.
@@ -261,5 +261,25 @@ mod tests {
         let by_common = counter.most_common_tiebreaker(|&a, &b| a.cmp(&b)).collect::<Vec<_>>();
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
+    }
+
+    #[test]
+    fn test_add() {
+        let d = Counter::init("abbccc".chars());
+        let e = Counter::init("bccddd".chars());
+
+        let out = d + e;
+        let expected = Counter::init("abbbcccccddd".chars());
+        assert!(out == expected);
+    }
+
+    #[test]
+    fn test_sub() {
+        let d = Counter::init("abbccc".chars());
+        let e = Counter::init("bccddd".chars());
+
+        let out = d - e;
+        let expected = Counter::init("abc".chars());
+        assert!(out == expected);
     }
 }
