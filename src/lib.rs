@@ -102,7 +102,22 @@ impl<'a, T> Sub for Counter<'a, T> {
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]`
     fn sub(self, rhs: Counter<'a, T>) -> Counter<'a, T> {
-        unimplemented!()
+        for (key, value) in rhs.hashmap.items() {
+            let mut remove = false;
+            if let Some(entry) = self.hashmap.get_mut(key) {
+                if *entry >= value {
+                    *entry -= value;
+                } else {
+                    remove = true;
+                }
+                if *entry == 0 {
+                    remove = true;
+                }
+            }
+            if remove {
+                self.hashmap.remove(key);
+            }
+        }
     }
 }
 
