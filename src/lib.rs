@@ -186,8 +186,23 @@ mod tests {
         let mut expected = HashMap::new();
         static ONE: usize = 1;
         expected.insert(&ONE, 1);
-        assert!(counter.map == expected)
+        assert!(counter.map == expected);
     }
 
+    #[test]
+    fn test_update() {
+        let mut counter = Counter::init("abbccc".chars());
+        let expected: HashMap<char, usize> = [('a', 1), ('b', 2), ('c', 3)]
+            .iter()
+            .cloned()
+            .collect();
+        assert!(counter.map == expected);
 
+        counter.update("aeeeee".chars());
+        let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
+            .iter()
+            .cloned()
+            .collect();
+        assert!(counter.map == expected);
+    }
 }
