@@ -6,19 +6,18 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use std::ops::{Add, Sub, BitAnd, BitOr};
+use std::ops::{Add, Sub, BitAnd, BitOr, Deref, DerefMut};
+
+type CounterMap<T> = HashMap<T, usize>;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Counter<T: Hash + Eq> {
-    /// HashMap backing this Counter
-    ///
-    /// Public to expose the HashMap API for direct manipulation.
-    /// That said, this may change in the future to some other mapping type / trait.
-    pub map: HashMap<T, usize>,
+    map: CounterMap<T>,
 }
 
 impl<T> Counter<T>
-    where T: Hash + Eq
+where
+    T: Hash + Eq,
 {
     /// Create a new, empty `Counter`
     pub fn new() -> Counter<T> {
@@ -27,7 +26,8 @@ impl<T> Counter<T>
 
     /// Create a new `Counter` initialized with the given iterable
     pub fn init<I>(iterable: I) -> Counter<T>
-        where I: IntoIterator<Item = T>
+    where
+        I: IntoIterator<Item = T>,
     {
         let mut counter = Counter::new();
         counter.update(iterable);
@@ -36,7 +36,8 @@ impl<T> Counter<T>
 
     /// Add the counts of the elements from the given iterable to this counter
     pub fn update<I>(&mut self, iterable: I)
-        where I: IntoIterator<Item = T>
+    where
+        I: IntoIterator<Item = T>,
     {
         for item in iterable.into_iter() {
             let entry = self.map.entry(item).or_insert(0);
@@ -48,7 +49,8 @@ impl<T> Counter<T>
     ///
     /// Non-positive counts are automatically removed
     pub fn subtract<I>(&mut self, iterable: I)
-        where I: IntoIterator<Item = T>
+    where
+        I: IntoIterator<Item = T>,
     {
         for item in iterable.into_iter() {
             let mut remove = false;
@@ -66,7 +68,8 @@ impl<T> Counter<T>
 }
 
 impl<T> Counter<T>
-    where T: Hash + Eq + Clone
+where
+    T: Hash + Eq + Clone,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
@@ -90,7 +93,8 @@ impl<T> Counter<T>
     /// to create some kind of MostCommon struct which implements `Iterator` which
     /// does all the necessary work on demand. PRs appreciated here!
     pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> ::std::vec::IntoIter<(T, usize)>
-        where F: Fn(&T, &T) -> ::std::cmp::Ordering
+    where
+        F: Fn(&T, &T) -> ::std::cmp::Ordering,
     {
         use std::cmp::Ordering;
 
@@ -98,16 +102,19 @@ impl<T> Counter<T>
             .iter()
             .map(|(key, &count)| (key.clone(), count))
             .collect::<Vec<_>>();
-        items.sort_by(|&(ref a_item, a_count), &(ref b_item, b_count)| match b_count.cmp(&a_count) {
-            Ordering::Equal => tiebreaker(&a_item, &b_item),
-            unequal @ _ => unequal,
+        items.sort_by(|&(ref a_item, a_count), &(ref b_item, b_count)| {
+            match b_count.cmp(&a_count) {
+                Ordering::Equal => tiebreaker(&a_item, &b_item),
+                unequal @ _ => unequal,
+            }
         });
         items.into_iter()
     }
 }
 
 impl<T> Counter<T>
-    where T: Hash + Eq + Clone + Ord
+where
+    T: Hash + Eq + Clone + Ord,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
@@ -124,7 +131,8 @@ impl<T> Counter<T>
 }
 
 impl<T> Add for Counter<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     type Output = Counter<T>;
 
@@ -142,7 +150,8 @@ impl<T> Add for Counter<T>
 }
 
 impl<T> Sub for Counter<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     type Output = Counter<T>;
 
@@ -172,7 +181,8 @@ impl<T> Sub for Counter<T>
 }
 
 impl<T> BitAnd for Counter<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     type Output = Counter<T>;
 
@@ -189,8 +199,10 @@ impl<T> BitAnd for Counter<T>
 
         let mut counter = Counter::new();
         for key in both_keys {
-            counter.map.insert((*key).clone(),
-                               min(*self.map.get(*key).unwrap(), *rhs.map.get(*key).unwrap()));
+            counter.map.insert(
+                (*key).clone(),
+                min(*self.map.get(*key).unwrap(), *rhs.map.get(*key).unwrap()),
+            );
         }
 
         counter
@@ -198,7 +210,8 @@ impl<T> BitAnd for Counter<T>
 }
 
 impl<T> BitOr for Counter<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     type Output = Counter<T>;
 
@@ -214,6 +227,19 @@ impl<T> BitOr for Counter<T>
             *entry = max(*entry, *value);
         }
         counter
+    }
+}
+
+impl<T: Hash + Eq> Deref for Counter<T> {
+    type Target = CounterMap<T>;
+    fn deref(&self) -> &CounterMap<T> {
+        &self.map
+    }
+}
+
+impl<T: Hash + Eq> DerefMut for Counter<T> {
+    fn deref_mut(&mut self) -> &mut CounterMap<T> {
+        &mut self.map
     }
 }
 
@@ -238,10 +264,8 @@ mod tests {
     #[test]
     fn test_update() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected: HashMap<char, usize> = [('a', 1), ('b', 2), ('c', 3)]
-            .iter()
-            .cloned()
-            .collect();
+        let expected: HashMap<char, usize> =
+            [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
         assert!(counter.map == expected);
 
         counter.update("aeeeee".chars());
@@ -271,7 +295,9 @@ mod tests {
     #[test]
     fn test_most_common_tiebreaker() {
         let counter = Counter::init("eaddbbccc".chars());
-        let by_common = counter.most_common_tiebreaker(|&a, &b| a.cmp(&b)).collect::<Vec<_>>();
+        let by_common = counter
+            .most_common_tiebreaker(|&a, &b| a.cmp(&b))
+            .collect::<Vec<_>>();
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
     }
@@ -279,7 +305,9 @@ mod tests {
     #[test]
     fn test_most_common_tiebreaker_reversed() {
         let counter = Counter::init("eaddbbccc".chars());
-        let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a)).collect::<Vec<_>>();
+        let by_common = counter
+            .most_common_tiebreaker(|&a, &b| b.cmp(&a))
+            .collect::<Vec<_>>();
         let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
         assert!(by_common == expected);
     }
@@ -335,7 +363,7 @@ mod tests {
     #[test]
     fn test_delete_key_from_backing_map() {
         let mut counter = Counter::init("aa-bb-cc".chars());
-        counter.map.remove(&'-');
+        counter.remove(&'-');
         assert!(counter == Counter::init("aabbcc".chars()));
     }
 

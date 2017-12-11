@@ -2,8 +2,6 @@
 
 Simple counter library for Rust iterables. Inspired by, and largely mimicing the API of, Python's [Counter](https://docs.python.org/3.5/library/collections.html#collections.Counter).
 
-Too tired for proper documentation at the moment; see the source. It's not really that long.
-
 ## Examples
 
 ### Get the most common characters in a string, breaking ties alphabetically
@@ -29,13 +27,15 @@ let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
 assert!(by_common == expected);
 ```
 
-### Directly modify the backing map
+### Treat it like a Map
 
-This is backed by a map to which you have full access:
+`Counter<T>` implements `Deref<Target=HashMap<T, usize>>` and
+`DerefMut<Target=HashMap<T, usize>>`, which means that you can perform any operations
+on it which are valid for a [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html).
 
 ```rust
 let mut counter = Counter::init("aa-bb-cc".chars());
-counter.map.remove(&'-');
+counter.remove(&'-');
 assert!(counter == Counter::init("aabbcc".chars()));
 ```
 
@@ -70,7 +70,7 @@ let intys = vec![
 ];
 
 let inty_counts = Counter::init(intys);
-println!("{:?}", inty_counts.map); 
+println!("{:?}", inty_counts.map);
 // {Inty { i: 8 }: 2, Inty { i: 0 }: 3, Inty { i: 9 }: 1, Inty { i: 3 }: 1,
 //  Inty { i: 7 }: 1, Inty { i: 6 }: 1, Inty { i: 5 }: 1}
 assert!(inty_counts.map.get(&Inty { i: 8 }) == Some(&2));
