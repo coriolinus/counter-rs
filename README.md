@@ -28,8 +28,7 @@ let difference = counts - other_counts;
 
 ```rust
 let by_common = Counter::init("eaddbbccc".chars())
-                  .most_common_ordered()
-                  .collect::<Vec<_>>();
+                  .most_common_ordered();
 let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
 assert!(by_common == expected);
 ```
@@ -40,7 +39,7 @@ For example, here we break ties reverse alphabetically.
 
 ```rust
 let counter = Counter::init("eaddbbccc".chars());
-let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a)).collect::<Vec<_>>();
+let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
 let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
 assert!(by_common == expected);
 ```

@@ -5,7 +5,6 @@
 
 use std::collections::HashMap;
 use std::hash::Hash;
-
 use std::ops::{Add, Sub, AddAssign, SubAssign, BitAnd, BitOr, Deref, DerefMut};
 
 type CounterMap<T> = HashMap<T, usize>;
@@ -72,12 +71,7 @@ where
     T: Hash + Eq + Clone,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
-    ///
-    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
-    /// the vector, and returns an iterator over the vector. It would be much better
-    /// to create some kind of MostCommon struct which implements `Iterator` which
-    /// does all the necessary work on demand. PRs appreciated here!
-    pub fn most_common(&self) -> ::std::vec::IntoIter<(T, usize)> {
+    pub fn most_common(&self) -> Vec<(T, usize)> {
         use std::cmp::Ordering;
         self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
     }
@@ -87,12 +81,7 @@ where
     ///
     /// In the event that two keys have an equal frequency, use the supplied ordering function
     /// to further arrange the results.
-    ///
-    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
-    /// the vector, and returns an iterator over the vector. It would be much better
-    /// to create some kind of MostCommon struct which implements `Iterator` which
-    /// does all the necessary work on demand. PRs appreciated here!
-    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> ::std::vec::IntoIter<(T, usize)>
+    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> Vec<(T, usize)>
     where
         F: Fn(&T, &T) -> ::std::cmp::Ordering,
     {
@@ -108,7 +97,7 @@ where
                 unequal @ _ => unequal,
             }
         });
-        items.into_iter()
+        items
     }
 }
 
@@ -120,12 +109,7 @@ where
     ///
     /// In the event that two keys have an equal frequency, use the natural ordering of the keys
     /// to further sort the results.
-    ///
-    /// FIXME: This is pretty inefficient: it copies everything into a vector, sorts
-    /// the vector, and returns an iterator over the vector. It would be much better
-    /// to create some kind of MostCommon struct which implements `Iterator` which
-    /// does all the necessary work on demand. PRs appreciated here!
-    pub fn most_common_ordered(&self) -> ::std::vec::IntoIter<(T, usize)> {
+    pub fn most_common_ordered(&self) -> Vec<(T, usize)> {
         self.most_common_tiebreaker(|ref a, ref b| a.cmp(&b))
     }
 }
@@ -422,7 +406,7 @@ mod tests {
     #[test]
     fn test_most_common() {
         let counter = Counter::init("abbccc".chars());
-        let by_common = counter.most_common().collect::<Vec<_>>();
+        let by_common = counter.most_common();
         let expected = vec![('c', 3), ('b', 2), ('a', 1)];
         assert!(by_common == expected);
     }
@@ -430,9 +414,7 @@ mod tests {
     #[test]
     fn test_most_common_tiebreaker() {
         let counter = Counter::init("eaddbbccc".chars());
-        let by_common = counter
-            .most_common_tiebreaker(|&a, &b| a.cmp(&b))
-            .collect::<Vec<_>>();
+        let by_common = counter.most_common_tiebreaker(|&a, &b| a.cmp(&b));
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
     }
@@ -440,9 +422,7 @@ mod tests {
     #[test]
     fn test_most_common_tiebreaker_reversed() {
         let counter = Counter::init("eaddbbccc".chars());
-        let by_common = counter
-            .most_common_tiebreaker(|&a, &b| b.cmp(&a))
-            .collect::<Vec<_>>();
+        let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
         let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
         assert!(by_common == expected);
     }
@@ -450,7 +430,7 @@ mod tests {
     #[test]
     fn test_most_common_ordered() {
         let counter = Counter::init("eaddbbccc".chars());
-        let by_common = counter.most_common_ordered().collect::<Vec<_>>();
+        let by_common = counter.most_common_ordered();
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
     }
