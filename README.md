@@ -4,7 +4,25 @@ Simple counter library for Rust iterables. Inspired by, and largely mimicing the
 
 ## Examples
 
-### Get the most common characters in a string, breaking ties alphabetically
+### Just count an iterable
+
+```rust
+let char_counts = Counter::init("barefoot".chars());
+let counts_counts = Counter::init(char_counts.values());
+```
+
+### Updates are simple
+
+```rust
+let mut counts = Counter::init("able babble table babble rabble table able fable scrabble".split_whitespace());
+// add or subtract an iterable of the same type
+counts += "cain and abel fable table cable".split_whitespace();
+// or add or subtract from another Counter of the same type
+let other_counts = Counter::init("scrabble cabbie fable babble".split_whitespace());
+let difference = counts - other_counts;
+```
+
+### Get the most common items
 
 `most_common_ordered()` uses the natural ordering of keys which are `Ord`.
 
@@ -16,7 +34,7 @@ let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
 assert!(by_common == expected);
 ```
 
-### Get the most common characters in a string, using your own ordering
+### Get the most common items using your own ordering
 
 For example, here we break ties reverse alphabetically.
 

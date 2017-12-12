@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use std::ops::{Add, Sub, BitAnd, BitOr, Deref, DerefMut};
+use std::ops::{Add, Sub, AddAssign, SubAssign, BitAnd, BitOr, Deref, DerefMut};
 
 type CounterMap<T> = HashMap<T, usize>;
 
@@ -130,6 +130,21 @@ where
     }
 }
 
+impl<T> AddAssign for Counter<T>
+where
+    T: Clone + Hash + Eq,
+{
+    /// Add another counter to this counter
+    ///
+    /// `c += d;` -> `c[x] += d[x]` for all `x`
+    fn add_assign(&mut self, rhs: Self) {
+        for (key, value) in rhs.map.iter() {
+            let entry = self.map.entry(key.clone()).or_insert(0);
+            *entry += *value;
+        }
+    }
+}
+
 impl<T> Add for Counter<T>
 where
     T: Clone + Hash + Eq,
@@ -138,14 +153,39 @@ where
 
     /// Add two counters together.
     ///
-    /// `out = c + d;` -> `out[x] == c[x] + d[x]`
+    /// `out = c + d;` -> `out[x] == c[x] + d[x]` for all `x`
     fn add(self, rhs: Counter<T>) -> Counter<T> {
         let mut counter = self.clone();
-        for (key, value) in rhs.map.iter() {
-            let entry = counter.map.entry(key.clone()).or_insert(0);
-            *entry += *value;
-        }
+        counter += rhs;
         counter
+    }
+}
+
+impl<T> SubAssign for Counter<T>
+where
+    T: Clone + Hash + Eq,
+{
+    /// Subtract (keeping only positive values).
+    ///
+    /// `c -= d;` -> `c[x] -= d[x]` for all `x`,
+    /// keeping only items with a value greater than 0.
+    fn sub_assign(&mut self, rhs: Self) {
+        for (key, value) in rhs.map.iter() {
+            let mut remove = false;
+            if let Some(entry) = self.map.get_mut(key) {
+                if *entry >= *value {
+                    *entry -= *value;
+                } else {
+                    remove = true;
+                }
+                if *entry == 0 {
+                    remove = true;
+                }
+            }
+            if remove {
+                self.map.remove(key);
+            }
+        }
     }
 }
 
@@ -157,25 +197,11 @@ where
 
     /// Subtract (keeping only positive values).
     ///
-    /// `out = c - d;` -> `out[x] == c[x] - d[x]`
+    /// `out = c - d;` -> `out[x] == c[x] - d[x]` for all `x`,
+    /// keeping only items with a value greater than 0.
     fn sub(self, rhs: Counter<T>) -> Counter<T> {
         let mut counter = self.clone();
-        for (key, value) in rhs.map.iter() {
-            let mut remove = false;
-            if let Some(entry) = counter.map.get_mut(key) {
-                if *entry >= *value {
-                    *entry -= *value;
-                } else {
-                    remove = true;
-                }
-                if *entry == 0 {
-                    remove = true;
-                }
-            }
-            if remove {
-                counter.map.remove(key);
-            }
-        }
+        counter -= rhs;
         counter
     }
 }
@@ -243,6 +269,54 @@ impl<T: Hash + Eq> DerefMut for Counter<T> {
     }
 }
 
+impl<I, T> AddAssign<I> for Counter<T>
+where
+    T: Hash + Eq,
+    I: IntoIterator<Item = T>,
+{
+    /// Directly add the counts of the elements of `I` to `self`
+    fn add_assign(&mut self, rhs: I) {
+        self.update(rhs);
+    }
+}
+
+impl<I, T> Add<I> for Counter<T>
+where
+    T: Clone + Hash + Eq,
+    I: IntoIterator<Item = T>,
+{
+    type Output = Counter<T>;
+    fn add(self, rhs: I) -> Counter<T> {
+        let mut ctr = self.clone();
+        ctr.update(rhs);
+        ctr
+    }
+}
+
+impl<I, T> SubAssign<I> for Counter<T>
+where
+    T: Hash + Eq,
+    I: IntoIterator<Item = T>,
+{
+    /// Directly subtract the counts of the elements of `I` from `self`
+    fn sub_assign(&mut self, rhs: I) {
+        self.subtract(rhs);
+    }
+}
+
+impl<I, T> Sub<I> for Counter<T>
+where
+    T: Clone + Hash + Eq,
+    I: IntoIterator<Item = T>,
+{
+    type Output = Counter<T>;
+    fn sub(self, rhs: I) -> Counter<T> {
+        let mut ctr = self.clone();
+        ctr.subtract(rhs);
+        ctr
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -277,11 +351,72 @@ mod tests {
     }
 
     #[test]
+    fn test_add_update_iterable() {
+        let mut counter = Counter::init("abbccc".chars());
+        let expected: HashMap<char, usize> =
+            [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
+        assert!(counter.map == expected);
+
+        counter += "aeeeee".chars();
+        let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
+            .iter()
+            .cloned()
+            .collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_add_update_counter() {
+        let mut counter = Counter::init("abbccc".chars());
+        let expected: HashMap<char, usize> =
+            [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
+        assert!(counter.map == expected);
+
+        let other = Counter::init("aeeeee".chars());
+        counter += other;
+        let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
+            .iter()
+            .cloned()
+            .collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
     fn test_subtract() {
         let mut counter = Counter::init("abbccc".chars());
         counter.subtract("bbccddd".chars());
         let expected: HashMap<char, usize> = [('a', 1), ('c', 1)].iter().cloned().collect();
         assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_sub_update_iterable() {
+        let mut counter = Counter::init("abbccc".chars());
+        counter -= "bbccddd".chars();
+        let expected: HashMap<char, usize> = [('a', 1), ('c', 1)].iter().cloned().collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_sub_update_counter() {
+        let mut counter = Counter::init("abbccc".chars());
+        let other = Counter::init("bbccddd".chars());
+        counter -= other;
+        let expected: HashMap<char, usize> = [('a', 1), ('c', 1)].iter().cloned().collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_composite_add_sub() {
+        let mut counts = Counter::init(
+            "able babble table babble rabble table able fable scrabble"
+                .split_whitespace(),
+        );
+        // add or subtract an iterable of the same type
+        counts += "cain and abel fable table cable".split_whitespace();
+        // or add or subtract from another Counter of the same type
+        let other_counts = Counter::init("scrabble cabbie fable babble".split_whitespace());
+        let _diff = counts - other_counts;
     }
 
     #[test]
