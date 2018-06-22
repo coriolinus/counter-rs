@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::ops::{Add, Sub, AddAssign, SubAssign, BitAnd, BitOr, Deref, DerefMut};
+use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Sub, SubAssign};
 
 type CounterMap<T> = HashMap<T, usize>;
 
@@ -20,7 +20,9 @@ where
 {
     /// Create a new, empty `Counter`
     pub fn new() -> Counter<T> {
-        Counter { map: HashMap::new() }
+        Counter {
+            map: HashMap::new(),
+        }
     }
 
     /// Create a new `Counter` initialized with the given iterable
@@ -75,7 +77,6 @@ where
         use std::cmp::Ordering;
         self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
     }
-
 
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
@@ -147,7 +148,7 @@ where
 
 impl<T> SubAssign for Counter<T>
 where
-    T: Clone + Hash + Eq,
+    T: Hash + Eq,
 {
     /// Subtract (keeping only positive values).
     ///
@@ -175,7 +176,7 @@ where
 
 impl<T> Sub for Counter<T>
 where
-    T: Clone + Hash + Eq,
+    T: Hash + Eq,
 {
     type Output = Counter<T>;
 
@@ -183,10 +184,9 @@ where
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]` for all `x`,
     /// keeping only items with a value greater than 0.
-    fn sub(self, rhs: Counter<T>) -> Counter<T> {
-        let mut counter = self.clone();
-        counter -= rhs;
-        counter
+    fn sub(mut self, rhs: Counter<T>) -> Counter<T> {
+        self -= rhs;
+        self
     }
 }
 
@@ -266,14 +266,13 @@ where
 
 impl<I, T> Add<I> for Counter<T>
 where
-    T: Clone + Hash + Eq,
+    T: Hash + Eq,
     I: IntoIterator<Item = T>,
 {
     type Output = Counter<T>;
-    fn add(self, rhs: I) -> Counter<T> {
-        let mut ctr = self.clone();
-        ctr.update(rhs);
-        ctr
+    fn add(mut self, rhs: I) -> Counter<T> {
+        self.update(rhs);
+        self
     }
 }
 
@@ -393,8 +392,7 @@ mod tests {
     #[test]
     fn test_composite_add_sub() {
         let mut counts = Counter::init(
-            "able babble table babble rabble table able fable scrabble"
-                .split_whitespace(),
+            "able babble table babble rabble table able fable scrabble".split_whitespace(),
         );
         // add or subtract an iterable of the same type
         counts += "cain and abel fable table cable".split_whitespace();
