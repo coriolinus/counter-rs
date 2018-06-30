@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::iter;
 use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Sub, SubAssign};
 
 type CounterMap<T> = HashMap<T, usize>;
@@ -300,6 +301,32 @@ where
     }
 }
 
+impl<T> iter::FromIterator<T> for Counter<T>
+where
+    T: Hash + Eq,
+{
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        Counter::init(iter)
+    }
+}
+
+impl<T> iter::FromIterator<(T, usize)> for Counter<T>
+where
+    T: Hash + Eq,
+{
+    /// `from_iter` creates a counter from `(item, count)` tuples.
+    ///
+    /// The counts of duplicate items are summed.
+    fn from_iter<I: IntoIterator<Item = (T, usize)>>(iter: I) -> Self {
+        let mut cnt = Counter::new();
+        for (item, item_count) in iter.into_iter() {
+            let entry = cnt.map.entry(item).or_insert(0);
+            *entry += item_count;
+        }
+        cnt
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -478,6 +505,35 @@ mod tests {
         let mut counter = Counter::init("aa-bb-cc".chars());
         counter.remove(&'-');
         assert!(counter == Counter::init("aabbcc".chars()));
+    }
+
+    #[test]
+    fn test_from_iter_simple() {
+        let counter = "abbccc".chars().collect::<Counter<_>>();
+        let expected: HashMap<char, usize> =
+            [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_from_iter_tuple() {
+        let items = [('a', 1), ('b', 2), ('c', 3)];
+        let counter = items.iter().cloned().collect::<Counter<_>>();
+        let expected: HashMap<char, usize> = items.iter().cloned().collect();
+        assert_eq!(counter.map, expected);
+    }
+
+    #[test]
+    fn test_from_iter_tuple_with_duplicates() {
+        let items = [('a', 1), ('b', 2), ('c', 3)];
+        let counter = items
+            .iter()
+            .cycle()
+            .take(items.len() * 2)
+            .cloned()
+            .collect::<Counter<_>>();
+        let expected: HashMap<char, usize> = items.into_iter().map(|(c, n)| (*c, n * 2)).collect();
+        assert_eq!(counter.map, expected);
     }
 
     #[test]
