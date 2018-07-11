@@ -10,7 +10,7 @@ use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Sub, SubAssign};
 
 type CounterMap<T> = HashMap<T, usize>;
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Counter<T: Hash + Eq> {
     map: CounterMap<T>,
 }
