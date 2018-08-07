@@ -1,6 +1,6 @@
 [package]
 name = "counter"
-version = "0.3.3"
+version = "0.4.0"
 authors = ["Peter Goodspeed-Niklaus <peter.r.goodspeedniklaus@gmail.com>"]
 description = "Simple package to count generic iterables"
 repository = "https://github.com/coriolinus/counter-rs"
@@ -10,3 +10,4 @@ keywords = ["count"]
 license = "MIT"
 
 [dependencies]
+num-traits = "0.2"

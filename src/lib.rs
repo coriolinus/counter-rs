@@ -3,31 +3,35 @@
 //!
 //! Counts recurring elements from an iterable.
 
+extern crate num_traits;
+use num_traits::{One, Zero};
+
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter;
 use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Sub, SubAssign};
 
-type CounterMap<T> = HashMap<T, usize>;
+type CounterMap<T, N> = HashMap<T, N>;
 
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
-pub struct Counter<T: Hash + Eq> {
-    map: CounterMap<T>,
+pub struct Counter<T: Hash + Eq, N: Clone = usize> {
+    map: CounterMap<T, N>,
 }
 
-impl<T> Counter<T>
+impl<T, N> Counter<T, N>
 where
     T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     /// Create a new, empty `Counter`
-    pub fn new() -> Counter<T> {
+    pub fn new() -> Counter<T, N> {
         Counter {
             map: HashMap::new(),
         }
     }
 
     /// Create a new `Counter` initialized with the given iterable
-    pub fn init<I>(iterable: I) -> Counter<T>
+    pub fn init<I>(iterable: I) -> Counter<T, N>
     where
         I: IntoIterator<Item = T>,
     {
@@ -42,8 +46,8 @@ where
         I: IntoIterator<Item = T>,
     {
         for item in iterable.into_iter() {
-            let entry = self.map.entry(item).or_insert(0);
-            *entry += 1;
+            let entry = self.map.entry(item).or_insert(N::zero());
+            *entry += N::one();
         }
     }
 
@@ -57,10 +61,10 @@ where
         for item in iterable.into_iter() {
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(&item) {
-                if *entry > 0 {
-                    *entry -= 1;
+                if *entry > N::zero() {
+                    *entry -= N::one();
                 }
-                remove = *entry == 0;
+                remove = *entry == N::zero();
             }
             if remove {
                 self.map.remove(&item);
@@ -69,12 +73,13 @@ where
     }
 }
 
-impl<T> Counter<T>
+impl<T, N> Counter<T, N>
 where
     T: Hash + Eq + Clone,
+    N: Clone + Copy + Ord,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
-    pub fn most_common(&self) -> Vec<(T, usize)> {
+    pub fn most_common(&self) -> Vec<(T, N)> {
         use std::cmp::Ordering;
         self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
     }
@@ -83,7 +88,7 @@ where
     ///
     /// In the event that two keys have an equal frequency, use the supplied ordering function
     /// to further arrange the results.
-    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> Vec<(T, usize)>
+    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> Vec<(T, N)>
     where
         F: Fn(&T, &T) -> ::std::cmp::Ordering,
     {
@@ -103,58 +108,62 @@ where
     }
 }
 
-impl<T> Counter<T>
+impl<T, N> Counter<T, N>
 where
     T: Hash + Eq + Clone + Ord,
+    N: Clone + Copy + Ord,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
     /// In the event that two keys have an equal frequency, use the natural ordering of the keys
     /// to further sort the results.
-    pub fn most_common_ordered(&self) -> Vec<(T, usize)> {
+    pub fn most_common_ordered(&self) -> Vec<(T, N)> {
         self.most_common_tiebreaker(|ref a, ref b| a.cmp(&b))
     }
 }
 
-impl<T> AddAssign for Counter<T>
+impl<T, N> AddAssign for Counter<T, N>
 where
     T: Clone + Hash + Eq,
+    N: Clone + Copy + Zero + AddAssign,
 {
     /// Add another counter to this counter
     ///
     /// `c += d;` -> `c[x] += d[x]` for all `x`
     fn add_assign(&mut self, rhs: Self) {
         for (key, value) in rhs.map.iter() {
-            let entry = self.map.entry(key.clone()).or_insert(0);
+            let entry = self.map.entry(key.clone()).or_insert(N::zero());
             *entry += *value;
         }
     }
 }
 
-impl<T> Add for Counter<T>
+impl<T, N> Add for Counter<T, N>
 where
     T: Clone + Hash + Eq,
+    N: Clone + Copy + PartialOrd + PartialEq + AddAssign + Zero,
 {
-    type Output = Counter<T>;
+    type Output = Counter<T, N>;
 
     /// Add two counters together.
     ///
     /// `out = c + d;` -> `out[x] == c[x] + d[x]` for all `x`
-    fn add(self, rhs: Counter<T>) -> Counter<T> {
+    fn add(self, rhs: Counter<T, N>) -> Self::Output {
         let mut counter = self.clone();
         counter += rhs;
         counter
     }
 }
 
-impl<T> SubAssign for Counter<T>
+impl<T, N> SubAssign for Counter<T, N>
 where
     T: Hash + Eq,
+    N: Clone + Copy + PartialOrd + PartialEq + SubAssign + Zero,
 {
     /// Subtract (keeping only positive values).
     ///
     /// `c -= d;` -> `c[x] -= d[x]` for all `x`,
-    /// keeping only items with a value greater than 0.
+    /// keeping only items with a value greater than N::zero().
     fn sub_assign(&mut self, rhs: Self) {
         for (key, value) in rhs.map.iter() {
             let mut remove = false;
@@ -164,7 +173,7 @@ where
                 } else {
                     remove = true;
                 }
-                if *entry == 0 {
+                if *entry == N::zero() {
                     remove = true;
                 }
             }
@@ -175,32 +184,34 @@ where
     }
 }
 
-impl<T> Sub for Counter<T>
+impl<T, N> Sub for Counter<T, N>
 where
     T: Hash + Eq,
+    N: Clone + Copy + PartialOrd + PartialEq + SubAssign + Zero,
 {
-    type Output = Counter<T>;
+    type Output = Counter<T, N>;
 
     /// Subtract (keeping only positive values).
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]` for all `x`,
-    /// keeping only items with a value greater than 0.
-    fn sub(mut self, rhs: Counter<T>) -> Counter<T> {
+    /// keeping only items with a value greater than N::zero().
+    fn sub(mut self, rhs: Counter<T, N>) -> Self::Output {
         self -= rhs;
         self
     }
 }
 
-impl<T> BitAnd for Counter<T>
+impl<T, N> BitAnd for Counter<T, N>
 where
     T: Clone + Hash + Eq,
+    N: Clone + Copy + Ord + AddAssign + SubAssign + Zero + One,
 {
-    type Output = Counter<T>;
+    type Output = Counter<T, N>;
 
     /// Intersection
     ///
     /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
-    fn bitand(self, rhs: Counter<T>) -> Counter<T> {
+    fn bitand(self, rhs: Counter<T, N>) -> Self::Output {
         use std::cmp::min;
         use std::collections::HashSet;
 
@@ -220,44 +231,54 @@ where
     }
 }
 
-impl<T> BitOr for Counter<T>
+impl<T, N> BitOr for Counter<T, N>
 where
     T: Clone + Hash + Eq,
+    N: Clone + Copy + Ord + Zero,
 {
-    type Output = Counter<T>;
+    type Output = Counter<T, N>;
 
     /// Union
     ///
     /// `out = c | d;` -> `out[x] == max(c[x], d[x])`
-    fn bitor(self, rhs: Counter<T>) -> Counter<T> {
+    fn bitor(self, rhs: Counter<T, N>) -> Self::Output {
         use std::cmp::max;
 
         let mut counter = self.clone();
         for (key, value) in rhs.map.iter() {
-            let entry = counter.map.entry(key.clone()).or_insert(0);
+            let entry = counter.map.entry(key.clone()).or_insert(N::zero());
             *entry = max(*entry, *value);
         }
         counter
     }
 }
 
-impl<T: Hash + Eq> Deref for Counter<T> {
-    type Target = CounterMap<T>;
-    fn deref(&self) -> &CounterMap<T> {
+impl<T, N> Deref for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Clone,
+{
+    type Target = CounterMap<T, N>;
+    fn deref(&self) -> &CounterMap<T, N> {
         &self.map
     }
 }
 
-impl<T: Hash + Eq> DerefMut for Counter<T> {
-    fn deref_mut(&mut self) -> &mut CounterMap<T> {
+impl<T, N> DerefMut for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Clone,
+{
+    fn deref_mut(&mut self) -> &mut CounterMap<T, N> {
         &mut self.map
     }
 }
 
-impl<I, T> AddAssign<I> for Counter<T>
+impl<I, T, N> AddAssign<I> for Counter<T, N>
 where
-    T: Hash + Eq,
     I: IntoIterator<Item = T>,
+    T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     /// Directly add the counts of the elements of `I` to `self`
     fn add_assign(&mut self, rhs: I) {
@@ -265,22 +286,24 @@ where
     }
 }
 
-impl<I, T> Add<I> for Counter<T>
+impl<I, T, N> Add<I> for Counter<T, N>
 where
-    T: Hash + Eq,
     I: IntoIterator<Item = T>,
+    T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
-    type Output = Counter<T>;
-    fn add(mut self, rhs: I) -> Counter<T> {
+    type Output = Self;
+    fn add(mut self, rhs: I) -> Self::Output {
         self.update(rhs);
         self
     }
 }
 
-impl<I, T> SubAssign<I> for Counter<T>
+impl<I, T, N> SubAssign<I> for Counter<T, N>
 where
-    T: Hash + Eq,
     I: IntoIterator<Item = T>,
+    T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     /// Directly subtract the counts of the elements of `I` from `self`
     fn sub_assign(&mut self, rhs: I) {
@@ -288,39 +311,42 @@ where
     }
 }
 
-impl<I, T> Sub<I> for Counter<T>
+impl<I, T, N> Sub<I> for Counter<T, N>
 where
-    T: Clone + Hash + Eq,
     I: IntoIterator<Item = T>,
+    T: Clone + Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
-    type Output = Counter<T>;
-    fn sub(self, rhs: I) -> Counter<T> {
+    type Output = Self;
+    fn sub(self, rhs: I) -> Self::Output {
         let mut ctr = self.clone();
         ctr.subtract(rhs);
         ctr
     }
 }
 
-impl<T> iter::FromIterator<T> for Counter<T>
+impl<T, N> iter::FromIterator<T> for Counter<T, N>
 where
     T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        Counter::init(iter)
+        Counter::<T, N>::init(iter)
     }
 }
 
-impl<T> iter::FromIterator<(T, usize)> for Counter<T>
+impl<T, N> iter::FromIterator<(T, N)> for Counter<T, N>
 where
     T: Hash + Eq,
+    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     /// `from_iter` creates a counter from `(item, count)` tuples.
     ///
     /// The counts of duplicate items are summed.
-    fn from_iter<I: IntoIterator<Item = (T, usize)>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
         let mut cnt = Counter::new();
         for (item, item_count) in iter.into_iter() {
-            let entry = cnt.map.entry(item).or_insert(0);
+            let entry = cnt.map.entry(item).or_insert(N::zero());
             *entry += item_count;
         }
         cnt
@@ -418,7 +444,7 @@ mod tests {
 
     #[test]
     fn test_composite_add_sub() {
-        let mut counts = Counter::init(
+        let mut counts = Counter::<_, usize>::init(
             "able babble table babble rabble table able fable scrabble".split_whitespace(),
         );
         // add or subtract an iterable of the same type
@@ -462,8 +488,8 @@ mod tests {
 
     #[test]
     fn test_add() {
-        let d = Counter::init("abbccc".chars());
-        let e = Counter::init("bccddd".chars());
+        let d = Counter::<_, usize>::init("abbccc".chars());
+        let e = Counter::<_, usize>::init("bccddd".chars());
 
         let out = d + e;
         let expected = Counter::init("abbbcccccddd".chars());
@@ -472,8 +498,8 @@ mod tests {
 
     #[test]
     fn test_sub() {
-        let d = Counter::init("abbccc".chars());
-        let e = Counter::init("bccddd".chars());
+        let d = Counter::<_, usize>::init("abbccc".chars());
+        let e = Counter::<_, usize>::init("bccddd".chars());
 
         let out = d - e;
         let expected = Counter::init("abc".chars());
@@ -482,8 +508,8 @@ mod tests {
 
     #[test]
     fn test_intersection() {
-        let d = Counter::init("abbccc".chars());
-        let e = Counter::init("bccddd".chars());
+        let d = Counter::<_, usize>::init("abbccc".chars());
+        let e = Counter::<_, usize>::init("bccddd".chars());
 
         let out = d & e;
         let expected = Counter::init("bcc".chars());
@@ -492,8 +518,8 @@ mod tests {
 
     #[test]
     fn test_union() {
-        let d = Counter::init("abbccc".chars());
-        let e = Counter::init("bccddd".chars());
+        let d = Counter::<_, usize>::init("abbccc".chars());
+        let e = Counter::<_, usize>::init("bccddd".chars());
 
         let out = d | e;
         let expected = Counter::init("abbcccddd".chars());
@@ -502,7 +528,7 @@ mod tests {
 
     #[test]
     fn test_delete_key_from_backing_map() {
-        let mut counter = Counter::init("aa-bb-cc".chars());
+        let mut counter = Counter::<_, usize>::init("aa-bb-cc".chars());
         counter.remove(&'-');
         assert!(counter == Counter::init("aabbcc".chars()));
     }
@@ -570,5 +596,20 @@ mod tests {
         assert!(inty_counts.map.get(&Inty { i: 8 }) == Some(&2));
         assert!(inty_counts.map.get(&Inty { i: 0 }) == Some(&3));
         assert!(inty_counts.map.get(&Inty { i: 6 }) == Some(&1));
+    }
+
+    #[test]
+    fn test_collect() {
+        let counter: Counter<_> = "abbccc".chars().collect();
+        let expected: HashMap<char, usize> =
+            [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_non_usize_count() {
+        let counter: Counter<_, i8> = "abbccc".chars().collect();
+        let expected: HashMap<char, i8> = [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
+        assert!(counter.map == expected);
     }
 }
