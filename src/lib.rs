@@ -209,7 +209,7 @@ where
 impl<T, N> Counter<T, N>
 where
     T: Hash + Eq + Clone,
-    N: Copy + Ord,
+    N: Clone + Ord,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
@@ -248,9 +248,9 @@ where
 
         let mut items = self.map
             .iter()
-            .map(|(key, &count)| (key.clone(), count))
+            .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
-        items.sort_by(|&(ref a_item, a_count), &(ref b_item, b_count)| {
+        items.sort_by(|&(ref a_item, ref a_count), &(ref b_item, ref b_count)| {
             match b_count.cmp(&a_count) {
                 Ordering::Equal => tiebreaker(&a_item, &b_item),
                 unequal @ _ => unequal,
@@ -263,7 +263,7 @@ where
 impl<T, N> Counter<T, N>
 where
     T: Hash + Eq + Clone + Ord,
-    N: Copy + Ord,
+    N: Clone + Ord,
 {
     /// Create an iterator over `(frequency, elem)` pairs, sorted most to least common.
     ///
@@ -284,7 +284,7 @@ where
 impl<T, N> AddAssign for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Copy + Zero + AddAssign,
+    N: Clone + Zero + AddAssign,
 {
     /// Add another counter to this counter
     ///
@@ -304,7 +304,7 @@ where
     fn add_assign(&mut self, rhs: Self) {
         for (key, value) in rhs.map.iter() {
             let entry = self.map.entry(key.clone()).or_insert(N::zero());
-            *entry += *value;
+            *entry += value.clone();
         }
     }
 }
@@ -312,7 +312,7 @@ where
 impl<T, N> Add for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Copy + PartialOrd + PartialEq + AddAssign + Zero,
+    N: Clone + PartialOrd + PartialEq + AddAssign + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -341,7 +341,7 @@ where
 impl<T, N> SubAssign for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Copy + PartialOrd + PartialEq + SubAssign + Zero,
+    N: Clone + PartialOrd + PartialEq + SubAssign + Zero,
 {
     /// Subtract (keeping only positive values).
     ///
@@ -364,7 +364,7 @@ where
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(key) {
                 if *entry >= *value {
-                    *entry -= *value;
+                    *entry -= value.clone();
                 } else {
                     remove = true;
                 }
@@ -382,7 +382,7 @@ where
 impl<T, N> Sub for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Copy + PartialOrd + PartialEq + SubAssign + Zero,
+    N: Clone + PartialOrd + PartialEq + SubAssign + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -411,7 +411,7 @@ where
 impl<T, N> BitAnd for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Copy + Ord + AddAssign + SubAssign + Zero + One,
+    N: Clone + Ord + AddAssign + SubAssign + Zero + One,
 {
     type Output = Counter<T, N>;
 
@@ -442,7 +442,7 @@ where
         for key in both_keys {
             counter.map.insert(
                 (*key).clone(),
-                min(*self.map.get(*key).unwrap(), *rhs.map.get(*key).unwrap()),
+                min(self.map.get(*key).unwrap(), rhs.map.get(*key).unwrap()).clone(),
             );
         }
 
@@ -453,7 +453,7 @@ where
 impl<T, N> BitOr for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Copy + Ord + Zero,
+    N: Clone + Ord + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -478,7 +478,7 @@ where
         let mut counter = self.clone();
         for (key, value) in rhs.map.iter() {
             let entry = counter.map.entry(key.clone()).or_insert(N::zero());
-            *entry = max(*entry, *value);
+            *entry = max(&*entry, value).clone();
         }
         counter
     }
