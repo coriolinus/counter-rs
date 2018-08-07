@@ -71,6 +71,11 @@ where
             }
         }
     }
+
+    /// Consumes this counter and returns a HashMap mapping the items to the counts.
+    pub fn into_map(self) -> HashMap<T, N> {
+        self.map
+    }
 }
 
 impl<T, N> Counter<T, N>
