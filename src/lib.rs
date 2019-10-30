@@ -883,7 +883,7 @@ mod tests {
             .take(items.len() * 2)
             .cloned()
             .collect::<Counter<_>>();
-        let expected: HashMap<char, usize> = items.into_iter().map(|(c, n)| (*c, n * 2)).collect();
+        let expected: HashMap<char, usize> = items.iter().map(|(c, n)| (*c, n * 2)).collect();
         assert_eq!(counter.map, expected);
     }
 
