@@ -246,7 +246,8 @@ where
     {
         use std::cmp::Ordering;
 
-        let mut items = self.map
+        let mut items = self
+            .map
             .iter()
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
@@ -672,7 +673,7 @@ mod tests {
     #[test]
     fn test_update() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -680,7 +681,7 @@ mod tests {
         assert!(counter.map == expected);
 
         counter.update("aeeeee".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -692,7 +693,7 @@ mod tests {
     #[test]
     fn test_add_update_iterable() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -700,7 +701,7 @@ mod tests {
         assert!(counter.map == expected);
 
         counter += "aeeeee".chars();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -712,7 +713,7 @@ mod tests {
     #[test]
     fn test_add_update_counter() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -721,7 +722,7 @@ mod tests {
 
         let other = Counter::init("aeeeee".chars());
         counter += other;
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -734,7 +735,7 @@ mod tests {
     fn test_subtract() {
         let mut counter = Counter::init("abbccc".chars());
         counter.subtract("bbccddd".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -745,7 +746,7 @@ mod tests {
     fn test_sub_update_iterable() {
         let mut counter = Counter::init("abbccc".chars());
         counter -= "bbccddd".chars();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -757,7 +758,7 @@ mod tests {
         let mut counter = Counter::init("abbccc".chars());
         let other = Counter::init("bbccddd".chars());
         counter -= other;
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -858,7 +859,7 @@ mod tests {
     #[test]
     fn test_from_iter_simple() {
         let counter = "abbccc".chars().collect::<Counter<_>>();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -926,7 +927,7 @@ mod tests {
     #[test]
     fn test_collect() {
         let counter: Counter<_> = "abbccc".chars().collect();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -937,7 +938,7 @@ mod tests {
     #[test]
     fn test_non_usize_count() {
         let counter: Counter<_, i8> = "abbccc".chars().collect();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
