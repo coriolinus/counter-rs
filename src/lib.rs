@@ -211,7 +211,7 @@ where
     T: Hash + Eq + Clone,
     N: Clone + Ord,
 {
-    /// Create an iterator over `(elem, frequency)` pairs, sorted most to least common.
+    /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -226,7 +226,7 @@ where
         self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
     }
 
-    /// Create an iterator over `(elem, frequency)` pairs, sorted most to least common.
+    /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
     ///
     /// In the event that two keys have an equal frequency, use the supplied ordering function
     /// to further arrange the results.
@@ -265,7 +265,7 @@ where
     T: Hash + Eq + Clone + Ord,
     N: Clone + Ord,
 {
-    /// Create an iterator over `(elem, frequency)` pairs, sorted most to least common.
+    /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
     ///
     /// In the event that two keys have an equal frequency, use the natural ordering of the keys
     /// to further sort the results.
