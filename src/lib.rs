@@ -16,6 +16,13 @@
 //!
 //! ```rust
 //! # use counter::Counter;
+//! let mut counts = "aaa".chars().collect::<Counter<_>>();
+//! counts[&'a'] += 1;
+//! counts[&'b'] += 1;
+//! ```
+//!
+//! ```rust
+//! # use counter::Counter;
 //! let mut counts = "able babble table babble rabble table able fable scrabble"
 //!     .split_whitespace().collect::<Counter<_>>();
 //! // add or subtract an iterable of the same type
@@ -24,6 +31,15 @@
 //! let other_counts = "scrabble cabbie fable babble"
 //!     .split_whitespace().collect::<Counter<_>>();
 //! let difference = counts - other_counts;
+//! ```
+//!
+//! ## Get items with keys
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let counts = "aaa".chars().collect::<Counter<_>>();
+//! assert_eq!(counts[&'a'], 3);
+//! assert_eq!(counts[&'b'], 0);
 //! ```
 //!
 //! ## Get the most common items
@@ -60,6 +76,16 @@
 //! let mut counter = "aa-bb-cc".chars().collect::<Counter<_>>();
 //! counter.remove(&'-');
 //! assert!(counter == "aabbcc".chars().collect::<Counter<_>>());
+//! ```
+//!
+//! Note that `Counter<T, N>` itself implements `Index`. `Counter::index` returns a reference to a `zero` value for missing keys.
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let counter = "aaa".chars().collect::<Counter<_>>();
+//! assert_eq!(counter[&'b'], 0);
+//! // panics
+//! // assert_eq!((*counter)[&'b'], 0);
 //! ```
 //!
 //! # Advanced Usage
@@ -125,16 +151,19 @@ extern crate maplit;
 extern crate num_traits;
 use num_traits::{One, Zero};
 
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter;
-use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Sub, SubAssign};
+use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 
 type CounterMap<T, N> = HashMap<T, N>;
 
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Counter<T: Hash + Eq, N = usize> {
     map: CounterMap<T, N>,
+    // necessary for `Index::index` since we cannot declare generic `static` variables.
+    zero: N,
 }
 
 impl<T, N> Counter<T, N>
@@ -146,6 +175,7 @@ where
     pub fn new() -> Counter<T, N> {
         Counter {
             map: HashMap::new(),
+            zero: N::zero(),
         }
     }
 
@@ -246,7 +276,8 @@ where
     {
         use std::cmp::Ordering;
 
-        let mut items = self.map
+        let mut items = self
+            .map
             .iter()
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
@@ -505,6 +536,73 @@ where
     }
 }
 
+impl<T, Q, N> Index<&'_ Q> for Counter<T, N>
+where
+    T: Hash + Eq + Borrow<Q>,
+    Q: Hash + Eq,
+    N: Zero,
+{
+    type Output = N;
+
+    /// Index in immutable contexts
+    ///
+    /// Returns a reference to a `zero` value for missing keys.
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let counter = Counter::<_>::init("aabbcc".chars());
+    /// assert_eq!(counter[&'a'], 2);
+    /// assert_eq!(counter[&'b'], 2);
+    /// assert_eq!(counter[&'c'], 2);
+    /// assert_eq!(counter[&'d'], 0);
+    /// ```
+    ///
+    /// Note that the `zero` is a struct filed but not one of the values of the inner `HashMap`. This method does not modify any existing value.
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let counter = Counter::<_>::init("".chars());
+    /// assert_eq!(counter[&'a'], 0);
+    /// assert_eq!(counter.get(&'a'), None); // as `Deref<Target = HashMap<_, _>>`
+    /// ```
+    fn index(&self, key: &'_ Q) -> &N {
+        self.map.get(key).unwrap_or(&self.zero)
+    }
+}
+
+impl<T, Q, N> IndexMut<&'_ Q> for Counter<T, N>
+where
+    T: Hash + Eq + Borrow<Q>,
+    Q: Hash + Eq + ToOwned<Owned = T>,
+    N: Zero,
+{
+    /// Index in mutable contexts
+    ///
+    /// If the given key is not present, creates a new entry and initializes it with a `zero` value.
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let mut counter = Counter::<_>::init("aabbcc".chars());
+    /// counter[&'c'] += 1;
+    /// counter[&'d'] += 1;
+    /// assert_eq!(counter[&'c'], 3);
+    /// assert_eq!(counter[&'d'], 1);
+    /// ```
+    ///
+    /// Unlike `Index::index`, The returned mutable reference to the `zero` is actually one of the values of the inner `HashMap`.
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let mut counter = Counter::<_>::init("".chars());
+    /// assert_eq!(counter.get(&'a'), None); // as `Deref<Target = HashMap<_, _>>`
+    /// let _ = &mut counter[&'a'];
+    /// assert_eq!(counter.get(&'a'), Some(&0));
+    /// ```
+    fn index_mut(&mut self, key: &'_ Q) -> &mut N {
+        self.map.entry(key.to_owned()).or_insert_with(N::zero)
+    }
+}
+
 impl<I, T, N> AddAssign<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
@@ -672,7 +770,7 @@ mod tests {
     #[test]
     fn test_update() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -680,7 +778,7 @@ mod tests {
         assert!(counter.map == expected);
 
         counter.update("aeeeee".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -692,7 +790,7 @@ mod tests {
     #[test]
     fn test_add_update_iterable() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -700,7 +798,7 @@ mod tests {
         assert!(counter.map == expected);
 
         counter += "aeeeee".chars();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -712,7 +810,7 @@ mod tests {
     #[test]
     fn test_add_update_counter() {
         let mut counter = Counter::init("abbccc".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -721,7 +819,7 @@ mod tests {
 
         let other = Counter::init("aeeeee".chars());
         counter += other;
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 2,
             'b' => 2,
             'c' => 3,
@@ -734,7 +832,7 @@ mod tests {
     fn test_subtract() {
         let mut counter = Counter::init("abbccc".chars());
         counter.subtract("bbccddd".chars());
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -745,7 +843,7 @@ mod tests {
     fn test_sub_update_iterable() {
         let mut counter = Counter::init("abbccc".chars());
         counter -= "bbccddd".chars();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -757,7 +855,7 @@ mod tests {
         let mut counter = Counter::init("abbccc".chars());
         let other = Counter::init("bbccddd".chars());
         counter -= other;
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'c' => 1,
         };
@@ -858,7 +956,7 @@ mod tests {
     #[test]
     fn test_from_iter_simple() {
         let counter = "abbccc".chars().collect::<Counter<_>>();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -926,7 +1024,7 @@ mod tests {
     #[test]
     fn test_collect() {
         let counter: Counter<_> = "abbccc".chars().collect();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
@@ -937,7 +1035,7 @@ mod tests {
     #[test]
     fn test_non_usize_count() {
         let counter: Counter<_, i8> = "abbccc".chars().collect();
-        let expected = hashmap!{
+        let expected = hashmap! {
             'a' => 1,
             'b' => 2,
             'c' => 3,
