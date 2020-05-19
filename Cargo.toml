@@ -8,6 +8,7 @@ documentation = "https://docs.rs/counter"
 readme = "README.md"
 keywords = ["count"]
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 num-traits = "0.2"
