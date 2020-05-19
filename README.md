@@ -1,6 +1,8 @@
-# Counter
+# counter
 
 Counter counts recurrent elements of iterables. It is based on [the Python implementation](https://docs.python.org/3.5/library/collections.html#collections.Counter).
+
+The struct [`Counter`](struct.Counter.html) is the entry-point type for this module.
 
 ## Examples
 
@@ -15,6 +17,12 @@ let counts_counts = char_counts.values().collect::<Counter<_>>();
 ### Update a count
 
 ```rust
+let mut counts = "aaa".chars().collect::<Counter<_>>();
+counts[&'a'] += 1;
+counts[&'b'] += 1;
+```
+
+```rust
 let mut counts = "able babble table babble rabble table able fable scrabble"
     .split_whitespace().collect::<Counter<_>>();
 // add or subtract an iterable of the same type
@@ -23,6 +31,14 @@ counts += "cain and abel fable table cable".split_whitespace();
 let other_counts = "scrabble cabbie fable babble"
     .split_whitespace().collect::<Counter<_>>();
 let difference = counts - other_counts;
+```
+
+### Get items with keys
+
+```rust
+let counts = "aaa".chars().collect::<Counter<_>>();
+assert_eq!(counts[&'a'], 3);
+assert_eq!(counts[&'b'], 0);
 ```
 
 ### Get the most common items
@@ -56,6 +72,15 @@ on it which are valid for a [`HashMap`](https://doc.rust-lang.org/std/collection
 let mut counter = "aa-bb-cc".chars().collect::<Counter<_>>();
 counter.remove(&'-');
 assert!(counter == "aabbcc".chars().collect::<Counter<_>>());
+```
+
+Note that `Counter<T, N>` itself implements `Index`. `Counter::index` returns a reference to a `zero` value for missing keys.
+
+```rust
+let counter = "aaa".chars().collect::<Counter<_>>();
+assert_eq!(counter[&'b'], 0);
+// panics
+// assert_eq!((*counter)[&'b'], 0);
 ```
 
 ## Advanced Usage
@@ -110,3 +135,5 @@ let counter: Counter<_, i8> = "abbccc".chars().collect();
 let expected: HashMap<char, i8> = [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
 assert!(counter.into_map() == expected);
 ```
+
+License: MIT
