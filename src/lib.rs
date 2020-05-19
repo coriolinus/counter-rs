@@ -144,11 +144,6 @@
 //! assert!(counter.into_map() == expected);
 //! ```
 
-#[cfg(test)]
-#[macro_use]
-extern crate maplit;
-
-extern crate num_traits;
 use num_traits::{One, Zero};
 
 use std::borrow::Borrow;
@@ -748,6 +743,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use maplit::hashmap;
     use super::*;
     use std::collections::HashMap;
 
