@@ -33,6 +33,17 @@
 //! let difference = counts - other_counts;
 //! ```
 //!
+//! Extend a Counter with another Counter:
+//! ```rust
+//! # use counter::Counter;
+//! # use std::collections::HashMap;
+//! let mut counter = "abbccc".chars().collect::<Counter<_>>();
+//! let another = "bccddd".chars().collect::<Counter<_>>();
+//! counter.extend(&another);
+//! let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter()
+//!     .cloned().collect::<HashMap<_, _>>();
+//! assert_eq!(counter.into_map(), expect);
+//! ```
 //! ## Get items with keys
 //!
 //! ```rust
@@ -147,7 +158,7 @@
 use num_traits::{One, Zero};
 
 use std::borrow::Borrow;
-use std::collections::HashMap;
+use std::collections::{hash_map::Iter, HashMap};
 use std::hash::Hash;
 use std::iter;
 use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
@@ -529,6 +540,19 @@ where
     }
 }
 
+impl<'a, T, N> IntoIterator for &'a Counter<T, N>
+where
+    T: Hash + Eq,
+    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+{
+    type Item = (&'a T, &'a N);
+    type IntoIter = Iter<'a, T, N>;
+
+    fn into_iter(self) -> Iter<'a, T, N> {
+        self.map.iter()
+    }
+}
+
 impl<T, Q, N> Index<&'_ Q> for Counter<T, N>
 where
     T: Hash + Eq + Borrow<Q>,
@@ -738,6 +762,77 @@ where
             *entry += item_count;
         }
         cnt
+    }
+}
+
+impl<T, N> Extend<T> for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+{
+    /// Extend a Counter with an iterator of items.
+    ///
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
+    /// counter.extend("bccddd".chars());
+    /// let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter().cloned().collect::<HashMap<_, _>>();
+    /// assert_eq!(counter.into_map(), expect);
+    /// ```
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        self.update(iter);
+    }
+}
+
+impl<T, N> Extend<(T, N)> for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+{
+    /// Extend a counter with `(item, count)` tuples.
+    ///
+    /// The counts of duplicate items are summed.
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
+    /// counter.extend([('a', 1), ('b', 2), ('c', 3), ('a', 4)].iter().cloned());
+    /// let expect = [('a', 6), ('b', 4), ('c', 6)].iter()
+    ///     .cloned().collect::<HashMap<_, _>>();
+    /// assert_eq!(counter.into_map(), expect);
+    /// ```
+    fn extend<I: IntoIterator<Item = (T, N)>>(&mut self, iter: I) {
+        for (item, item_count) in iter.into_iter() {
+            let entry = self.map.entry(item).or_insert_with(N::zero);
+            *entry += item_count;
+        }
+    }
+}
+
+impl<'a, T: 'a, N: 'a> Extend<(&'a T, &'a N)> for Counter<T, N>
+where
+    T: Hash + Eq + Copy,
+    N: PartialOrd + AddAssign + SubAssign + Zero + One + Copy,
+{
+    /// Extend a counter with `(item, count)` tuples.
+    ///
+    /// You can extend a Counter with another Counter:
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
+    /// let another = "bccddd".chars().collect::<Counter<_>>();
+    /// counter.extend(&another);
+    /// let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter()
+    ///     .cloned().collect::<HashMap<_, _>>();
+    /// assert_eq!(counter.into_map(), expect);
+    /// ```
+    fn extend<I: IntoIterator<Item = (&'a T, &'a N)>>(&mut self, iter: I) {
+        for (item, item_count) in iter.into_iter() {
+            let entry = self.map.entry(*item).or_insert_with(N::zero);
+            *entry += *item_count;
+        }
     }
 }
 
@@ -974,6 +1069,42 @@ mod tests {
             .take(items.len() * 2)
             .cloned()
             .collect::<Counter<_>>();
+        let expected: HashMap<char, usize> = items.iter().map(|(c, n)| (*c, n * 2)).collect();
+        assert_eq!(counter.map, expected);
+    }
+
+    #[test]
+    fn test_extend_simple() {
+        let mut counter = "abbccc".chars().collect::<Counter<_>>();
+        counter.extend("bccddd".chars());
+        let expected = hashmap! {
+            'a' => 1,
+            'b' => 3,
+            'c' => 5,
+            'd' => 3,
+        };
+        assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_extend_tuple() {
+        let mut counter = "bccddd".chars().collect::<Counter<_>>();
+        let items = [('a', 1), ('b', 2), ('c', 3)];
+        counter.extend(items.iter().cloned());
+        let expected = hashmap! {
+            'a' => 1,
+            'b' => 3,
+            'c' => 5,
+            'd' => 3,
+        };
+        assert_eq!(counter.map, expected);
+    }
+
+    #[test]
+    fn test_extend_tuple_with_duplicates() {
+        let mut counter = "ccc".chars().collect::<Counter<_>>();
+        let items = [('a', 1), ('b', 2), ('c', 3)];
+        counter.extend(items.iter().cycle().take(items.len() * 2 - 1).cloned());
         let expected: HashMap<char, usize> = items.iter().map(|(c, n)| (*c, n * 2)).collect();
         assert_eq!(counter.map, expected);
     }
