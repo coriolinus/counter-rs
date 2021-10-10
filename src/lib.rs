@@ -546,7 +546,6 @@ where
 impl<'a, T, N> IntoIterator for &'a Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     type Item = (&'a T, &'a N);
     type IntoIter = Iter<'a, T, N>;
