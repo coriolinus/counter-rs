@@ -158,7 +158,10 @@
 use num_traits::{One, Zero};
 
 use std::borrow::Borrow;
-use std::collections::{hash_map::{Iter, IntoIter, IterMut}, HashMap};
+use std::collections::{
+    hash_map::{IntoIter, Iter, IterMut},
+    HashMap,
+};
 use std::hash::Hash;
 use std::iter;
 use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
@@ -556,7 +559,6 @@ where
 impl<T, N> IntoIterator for Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     type Item = (T, N);
     type IntoIter = IntoIter<T, N>;
@@ -569,7 +571,6 @@ where
 impl<'a, T, N> IntoIterator for &'a mut Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
 {
     type Item = (&'a T, &'a mut N);
     type IntoIter = IterMut<'a, T, N>;
@@ -864,8 +865,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use maplit::hashmap;
     use super::*;
+    use maplit::hashmap;
     use std::collections::HashMap;
 
     #[test]
