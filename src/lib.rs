@@ -321,7 +321,7 @@ where
 impl<T, N> AddAssign for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Clone + Zero + AddAssign,
+    N: Zero + AddAssign,
 {
     /// Add another counter to this counter
     ///
@@ -339,9 +339,9 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn add_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.iter() {
+        for (key, value) in rhs.map.into_iter() {
             let entry = self.map.entry(key.clone()).or_insert_with(N::zero);
-            *entry += value.clone();
+            *entry += value;
         }
     }
 }
@@ -349,7 +349,7 @@ where
 impl<T, N> Add for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Clone + PartialOrd + PartialEq + AddAssign + Zero,
+    N: AddAssign + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -377,7 +377,7 @@ where
 impl<T, N> SubAssign for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Clone + PartialOrd + PartialEq + SubAssign + Zero,
+    N: PartialOrd + PartialEq + SubAssign + Zero,
 {
     /// Subtract (keeping only positive values).
     ///
@@ -396,11 +396,11 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn sub_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.iter() {
+        for (key, value) in rhs.map.into_iter() {
             let mut remove = false;
-            if let Some(entry) = self.map.get_mut(key) {
-                if *entry >= *value {
-                    *entry -= value.clone();
+            if let Some(entry) = self.map.get_mut(&key) {
+                if *entry >= value {
+                    *entry -= value;
                 } else {
                     remove = true;
                 }
@@ -409,7 +409,7 @@ where
                 }
             }
             if remove {
-                self.map.remove(key);
+                self.map.remove(&key);
             }
         }
     }
@@ -418,7 +418,7 @@ where
 impl<T, N> Sub for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Clone + PartialOrd + PartialEq + SubAssign + Zero,
+    N: PartialOrd + PartialEq + SubAssign + Zero,
 {
     type Output = Counter<T, N>;
 
