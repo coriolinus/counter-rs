@@ -259,7 +259,7 @@ where
     /// Note that the ordering of duplicates is unstable.
     pub fn most_common(&self) -> Vec<(T, N)> {
         use std::cmp::Ordering;
-        self.most_common_tiebreaker(|ref _a, ref _b| Ordering::Equal)
+        self.most_common_tiebreaker(|_a, _b| Ordering::Equal)
     }
 
     /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
@@ -288,8 +288,8 @@ where
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
         items.sort_by(|&(ref a_item, ref a_count), &(ref b_item, ref b_count)| {
-            match b_count.cmp(&a_count) {
-                Ordering::Equal => tiebreaker(&a_item, &b_item),
+            match b_count.cmp(a_count) {
+                Ordering::Equal => tiebreaker(a_item, b_item),
                 unequal => unequal,
             }
         });
@@ -314,7 +314,7 @@ where
     /// assert_eq!(mc, expect);
     /// ```
     pub fn most_common_ordered(&self) -> Vec<(T, N)> {
-        self.most_common_tiebreaker(|ref a, ref b| a.cmp(&b))
+        self.most_common_tiebreaker(|a, b| a.cmp(b))
     }
 }
 
