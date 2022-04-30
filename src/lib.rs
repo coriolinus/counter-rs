@@ -160,7 +160,7 @@ use num_traits::{One, Zero};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::iter::{self, Sum};
+use std::iter;
 use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 
 type CounterMap<T, N> = HashMap<T, N>;
@@ -339,7 +339,7 @@ where
     /// ```
     pub fn total<'a, S>(&'a self) -> S
     where
-        S: Sum<&'a N>,
+        S: iter::Sum<&'a N>,
     {
         self.map.values().sum()
     }
