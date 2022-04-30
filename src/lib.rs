@@ -318,6 +318,33 @@ where
     }
 }
 
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+{
+    /// Returns the sum of the counts.
+    ///
+    /// Use [`len`] to get the number of elements in the counter and use `total` to get the sum of
+    /// their counts.
+    ///
+    /// [`len`]: struct.Counter.html#method.len
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let counter = Counter::init("abracadabra".chars());
+    /// assert_eq!(counter.total::<usize>(), 11);
+    /// assert_eq!(counter.len(), 5);
+    /// ```
+    pub fn total<'a, S>(&'a self) -> S
+    where
+        S: iter::Sum<&'a N>,
+    {
+        self.map.values().sum()
+    }
+}
+
 impl<T, N> Default for Counter<T, N>
 where
     T: Hash + Eq,
@@ -1066,6 +1093,17 @@ mod tests {
         let by_common = counter.most_common_ordered();
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
+    }
+
+    #[test]
+    fn test_total() {
+        let counter = Counter::init("".chars());
+        let total: usize = counter.total();
+        assert_eq!(total, 0);
+
+        let counter = Counter::init("eaddbbccc".chars());
+        let total: usize = counter.total();
+        assert_eq!(total, 9);
     }
 
     #[test]
