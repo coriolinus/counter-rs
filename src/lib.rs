@@ -574,7 +574,6 @@ where
 impl<T, N> Deref for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Clone,
 {
     type Target = CounterMap<T, N>;
     fn deref(&self) -> &CounterMap<T, N> {
@@ -585,7 +584,6 @@ where
 impl<T, N> DerefMut for Counter<T, N>
 where
     T: Hash + Eq,
-    N: Clone,
 {
     fn deref_mut(&mut self) -> &mut CounterMap<T, N> {
         &mut self.map
@@ -808,8 +806,8 @@ where
 impl<I, T, N> Sub<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
-    T: Clone + Hash + Eq,
-    N: Clone + PartialOrd + SubAssign + Zero + One,
+    T: Hash + Eq,
+    N: PartialOrd + SubAssign + Zero + One,
 {
     type Output = Self;
     /// Consume self producing a Counter like self with the counts of the
