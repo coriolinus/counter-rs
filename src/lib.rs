@@ -175,7 +175,17 @@ pub struct Counter<T: Hash + Eq, N = usize> {
 impl<T, N> Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+{
+    /// Consumes this counter and returns a HashMap mapping the items to the counts.
+    pub fn into_map(self) -> HashMap<T, N> {
+        self.map
+    }
+}
+
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Zero,
 {
     /// Create a new, empty `Counter`
     pub fn new() -> Counter<T, N> {
@@ -185,6 +195,34 @@ where
         }
     }
 
+    /// Returns the sum of the counts.
+    ///
+    /// Use [`len`] to get the number of elements in the counter and use `total` to get the sum of
+    /// their counts.
+    ///
+    /// [`len`]: struct.Counter.html#method.len
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use counter::Counter;
+    /// let counter = Counter::init("abracadabra".chars());
+    /// assert_eq!(counter.total::<usize>(), 11);
+    /// assert_eq!(counter.len(), 5);
+    /// ```
+    pub fn total<'a, S>(&'a self) -> S
+    where
+        S: iter::Sum<&'a N>,
+    {
+        self.map.values().sum()
+    }
+}
+
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: AddAssign + Zero + One,
+{
     /// Create a new `Counter` initialized with the given iterable
     pub fn init<I>(iterable: I) -> Counter<T, N>
     where
@@ -205,12 +243,13 @@ where
             *entry += N::one();
         }
     }
+}
 
-    /// Consumes this counter and returns a HashMap mapping the items to the counts.
-    pub fn into_map(self) -> HashMap<T, N> {
-        self.map
-    }
-
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: PartialOrd + SubAssign + Zero + One,
+{
     /// Remove the counts of the elements from the given iterable to this counter
     ///
     /// Non-positive counts are automatically removed
@@ -315,33 +354,6 @@ where
     /// ```
     pub fn most_common_ordered(&self) -> Vec<(T, N)> {
         self.most_common_tiebreaker(|a, b| a.cmp(b))
-    }
-}
-
-impl<T, N> Counter<T, N>
-where
-    T: Hash + Eq,
-{
-    /// Returns the sum of the counts.
-    ///
-    /// Use [`len`] to get the number of elements in the counter and use `total` to get the sum of
-    /// their counts.
-    ///
-    /// [`len`]: struct.Counter.html#method.len
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use counter::Counter;
-    /// let counter = Counter::init("abracadabra".chars());
-    /// assert_eq!(counter.total::<usize>(), 11);
-    /// assert_eq!(counter.len(), 5);
-    /// ```
-    pub fn total<'a, S>(&'a self) -> S
-    where
-        S: iter::Sum<&'a N>,
-    {
-        self.map.values().sum()
     }
 }
 
@@ -487,7 +499,7 @@ where
 impl<T, N> BitAnd for Counter<T, N>
 where
     T: Clone + Hash + Eq,
-    N: Clone + Ord + AddAssign + SubAssign + Zero + One,
+    N: Clone + Ord + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -725,7 +737,7 @@ impl<I, T, N> AddAssign<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero + One,
 {
     /// Directly add the counts of the elements of `I` to `self`
     ///
@@ -748,7 +760,7 @@ impl<I, T, N> Add<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero + One,
 {
     type Output = Self;
     /// Consume self producing a Counter like self updated with the counts of
@@ -774,7 +786,7 @@ impl<I, T, N> SubAssign<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: PartialOrd + SubAssign + Zero + One,
 {
     /// Directly subtract the counts of the elements of `I` from `self`,
     /// keeping only items with a value greater than N::zero().
@@ -797,7 +809,7 @@ impl<I, T, N> Sub<I> for Counter<T, N>
 where
     I: IntoIterator<Item = T>,
     T: Clone + Hash + Eq,
-    N: Clone + PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: Clone + PartialOrd + SubAssign + Zero + One,
 {
     type Output = Self;
     /// Consume self producing a Counter like self with the counts of the
@@ -821,7 +833,7 @@ where
 impl<T, N> iter::FromIterator<T> for Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero + One,
 {
     /// Produce a Counter from an iterator of items. This is called automatically
     /// by `iter.collect()`.
@@ -842,7 +854,7 @@ where
 impl<T, N> iter::FromIterator<(T, N)> for Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero,
 {
     /// `from_iter` creates a counter from `(item, count)` tuples.
     ///
@@ -869,7 +881,7 @@ where
 impl<T, N> Extend<T> for Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero + One,
 {
     /// Extend a Counter with an iterator of items.
     ///
@@ -889,7 +901,7 @@ where
 impl<T, N> Extend<(T, N)> for Counter<T, N>
 where
     T: Hash + Eq,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One,
+    N: AddAssign + Zero,
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
@@ -914,7 +926,7 @@ where
 impl<'a, T: 'a, N: 'a> Extend<(&'a T, &'a N)> for Counter<T, N>
 where
     T: Hash + Eq + Copy,
-    N: PartialOrd + AddAssign + SubAssign + Zero + One + Copy,
+    N: AddAssign + Zero + Copy,
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
