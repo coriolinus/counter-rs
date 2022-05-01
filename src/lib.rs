@@ -498,8 +498,8 @@ where
 
 impl<T, N> BitAnd for Counter<T, N>
 where
-    T: Clone + Hash + Eq,
-    N: Clone + Ord + Zero,
+    T: Hash + Eq,
+    N: Ord + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -518,30 +518,24 @@ where
     /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(e.into_map(), expect);
     /// ```
-    fn bitand(self, rhs: Counter<T, N>) -> Self::Output {
+    fn bitand(self, mut rhs: Counter<T, N>) -> Self::Output {
         use std::cmp::min;
-        use std::collections::HashSet;
-
-        let self_keys = self.map.keys().collect::<HashSet<_>>();
-        let other_keys = rhs.map.keys().collect::<HashSet<_>>();
-        let both_keys = self_keys.intersection(&other_keys);
 
         let mut counter = Counter::new();
-        for key in both_keys {
-            counter.map.insert(
-                (*key).clone(),
-                min(self.map.get(*key).unwrap(), rhs.map.get(*key).unwrap()).clone(),
-            );
+        for (key, lhs_count) in self.map {
+            if let Some(rhs_count) = rhs.remove(&key) {
+                let count = min(lhs_count, rhs_count);
+                counter.map.insert(key, count);
+            }
         }
-
         counter
     }
 }
 
 impl<T, N> BitOr for Counter<T, N>
 where
-    T: Clone + Hash + Eq,
-    N: Clone + Ord + Zero,
+    T: Hash + Eq,
+    N: Ord + Zero,
 {
     type Output = Counter<T, N>;
 
@@ -561,11 +555,27 @@ where
     /// assert_eq!(e.into_map(), expect);
     /// ```
     fn bitor(mut self, rhs: Counter<T, N>) -> Self::Output {
-        use std::cmp::max;
-
-        for (key, value) in rhs.map.iter() {
-            let entry = self.map.entry(key.clone()).or_insert_with(N::zero);
-            *entry = max(&*entry, value).clone();
+        for (key, rhs_value) in rhs.map {
+            let entry = self.map.entry(key).or_insert_with(N::zero);
+            // We want to update the value of the now occupied entry in `self` with the maximum of
+            // its current value and `rhs_value`.  If that max is `rhs_value`, we can just update
+            // the value of the entry.  If the max is the current value, we do nothing.  Note that
+            // `Ord::max()` returns the second argument (here `rhs_value`) if its two arguments are
+            // equal, justifying the use of the weak inequality below instead of a strict
+            // inequality.
+            //
+            // Doing it this way with an inequality instead of actually using `std::cmp::max()`
+            // lets us avoid trying (and failing) to move the non-copy value out of the entry in
+            // order to pass it as an argument to `std::cmp::max()`, while still holding a mutable
+            // reference to the value slot in the entry.
+            //
+            // And while using the inequality seemingly only requires the bound `N: PartialOrd`, we
+            // nevertheless prefer to require `Ord` as though we were using `std::cmp::max()`
+            // because the semantics of `BitOr` for `Counter` really do not make sense if there are
+            // possibly non-comparable values of type `N`.
+            if rhs_value >= *entry {
+                *entry = rhs_value;
+            }
         }
         self
     }
