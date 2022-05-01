@@ -372,7 +372,7 @@ where
 
 impl<T, N> AddAssign for Counter<T, N>
 where
-    T: Clone + Hash + Eq,
+    T: Hash + Eq,
     N: Zero + AddAssign,
 {
     /// Add another counter to this counter
@@ -392,7 +392,7 @@ where
     /// ```
     fn add_assign(&mut self, rhs: Self) {
         for (key, value) in rhs.map.into_iter() {
-            let entry = self.map.entry(key.clone()).or_insert_with(N::zero);
+            let entry = self.map.entry(key).or_insert_with(N::zero);
             *entry += value;
         }
     }
