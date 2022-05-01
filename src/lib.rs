@@ -933,8 +933,8 @@ where
 
 impl<'a, T: 'a, N: 'a> Extend<(&'a T, &'a N)> for Counter<T, N>
 where
-    T: Hash + Eq + Copy,
-    N: AddAssign + Zero + Copy,
+    T: Hash + Eq + Clone,
+    N: AddAssign + Zero + Clone,
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
@@ -951,8 +951,8 @@ where
     /// ```
     fn extend<I: IntoIterator<Item = (&'a T, &'a N)>>(&mut self, iter: I) {
         for (item, item_count) in iter.into_iter() {
-            let entry = self.map.entry(*item).or_insert_with(N::zero);
-            *entry += *item_count;
+            let entry = self.map.entry(item.clone()).or_insert_with(N::zero);
+            *entry += item_count.clone();
         }
     }
 }
