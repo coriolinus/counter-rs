@@ -180,20 +180,6 @@ where
     pub fn into_map(self) -> HashMap<T, N> {
         self.map
     }
-}
-
-impl<T, N> Counter<T, N>
-where
-    T: Hash + Eq,
-    N: Zero,
-{
-    /// Create a new, empty `Counter`
-    pub fn new() -> Counter<T, N> {
-        Counter {
-            map: HashMap::new(),
-            zero: N::zero(),
-        }
-    }
 
     /// Returns the sum of the counts.
     ///
@@ -215,6 +201,20 @@ where
         S: iter::Sum<&'a N>,
     {
         self.map.values().sum()
+    }
+}
+
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Zero,
+{
+    /// Create a new, empty `Counter`
+    pub fn new() -> Counter<T, N> {
+        Counter {
+            map: HashMap::new(),
+            zero: N::zero(),
+        }
     }
 }
 
