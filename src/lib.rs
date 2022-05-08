@@ -319,18 +319,15 @@ where
     where
         F: Fn(&T, &T) -> ::std::cmp::Ordering,
     {
-        use std::cmp::Ordering;
-
         let mut items = self
             .map
             .iter()
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
-        items.sort_by(|&(ref a_item, ref a_count), &(ref b_item, ref b_count)| {
-            match b_count.cmp(a_count) {
-                Ordering::Equal => tiebreaker(a_item, b_item),
-                unequal => unequal,
-            }
+        items.sort_by(|(a_item, a_count), (b_item, b_count)| {
+            b_count
+                .cmp(a_count)
+                .then_with(|| tiebreaker(a_item, b_item))
         });
         items
     }
