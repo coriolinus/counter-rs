@@ -315,9 +315,9 @@ where
     /// let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
     /// assert_eq!(by_common, expected);
     /// ```
-    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> Vec<(T, N)>
+    pub fn most_common_tiebreaker<F>(&self, mut tiebreaker: F) -> Vec<(T, N)>
     where
-        F: Fn(&T, &T) -> ::std::cmp::Ordering,
+        F: FnMut(&T, &T) -> ::std::cmp::Ordering,
     {
         use std::cmp::Ordering;
 
@@ -1105,6 +1105,24 @@ mod tests {
         let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
         let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
         assert!(by_common == expected);
+    }
+
+    // The main purpose of this test is to see that we can call `Counter::most_common_tiebreaker()`
+    // with a closure that is `FnMut` but not `Fn`.
+    #[test]
+    fn test_most_common_tiebreaker_fn_mut() {
+        let counter: Counter<_> = Counter::init("abracadabra".chars());
+        // Count how many times the tiebreaker closure is called.
+        let mut num_ties = 0;
+        let sorted = counter.most_common_tiebreaker(|a, b| {
+            num_ties += 1;
+            a.cmp(b)
+        });
+        let expected = vec![('a', 5), ('b', 2), ('r', 2), ('c', 1), ('d', 1)];
+        assert_eq!(sorted, expected);
+        // We should have called the tiebreaker twice: once to resolve the tie between `'b'` and
+        // `'r'` and once to resolve the tie between `'c'` and `'d'`.
+        assert_eq!(num_ties, 2);
     }
 
     #[test]
