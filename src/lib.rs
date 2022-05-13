@@ -350,7 +350,7 @@ where
     /// assert_eq!(mc, expect);
     /// ```
     pub fn most_common_ordered(&self) -> Vec<(T, N)> {
-        self.most_common_tiebreaker(|a, b| a.cmp(b))
+        self.most_common_tiebreaker(Ord::cmp)
     }
 }
 
