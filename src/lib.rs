@@ -238,7 +238,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        for item in iterable.into_iter() {
+        for item in iterable {
             let entry = self.map.entry(item).or_insert_with(N::zero);
             *entry += N::one();
         }
@@ -266,7 +266,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        for item in iterable.into_iter() {
+        for item in iterable {
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(&item) {
                 if *entry > N::zero() {
@@ -388,7 +388,7 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn add_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.into_iter() {
+        for (key, value) in rhs.map {
             let entry = self.map.entry(key).or_insert_with(N::zero);
             *entry += value;
         }
@@ -445,7 +445,7 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn sub_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.into_iter() {
+        for (key, value) in rhs.map {
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(&key) {
                 if *entry >= value {
@@ -875,7 +875,7 @@ where
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
         let mut cnt = Counter::new();
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = cnt.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
         }
@@ -921,7 +921,7 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn extend<I: IntoIterator<Item = (T, N)>>(&mut self, iter: I) {
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = self.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
         }
@@ -947,7 +947,7 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn extend<I: IntoIterator<Item = (&'a T, &'a N)>>(&mut self, iter: I) {
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = self.map.entry(item.clone()).or_insert_with(N::zero);
             *entry += item_count.clone();
         }
