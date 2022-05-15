@@ -200,20 +200,6 @@ where
     pub fn into_map(self) -> HashMap<T, N> {
         self.map
     }
-}
-
-impl<T, N> Counter<T, N>
-where
-    T: Hash + Eq,
-    N: Zero,
-{
-    /// Create a new, empty `Counter`.
-    pub fn new() -> Counter<T, N> {
-        Counter {
-            map: HashMap::new(),
-            zero: N::zero(),
-        }
-    }
 
     /// Returns the sum of the counts.
     ///
@@ -241,6 +227,20 @@ where
 impl<T, N> Counter<T, N>
 where
     T: Hash + Eq,
+    N: Zero,
+{
+    /// Create a new, empty `Counter`
+    pub fn new() -> Counter<T, N> {
+        Counter {
+            map: HashMap::new(),
+            zero: N::zero(),
+        }
+    }
+}
+
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
     N: AddAssign + Zero + One,
 {
     /// Create a new `Counter` initialized with the given iterable.
@@ -258,7 +258,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        for item in iterable.into_iter() {
+        for item in iterable {
             let entry = self.map.entry(item).or_insert_with(N::zero);
             *entry += N::one();
         }
@@ -286,7 +286,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        for item in iterable.into_iter() {
+        for item in iterable {
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(&item) {
                 if *entry > N::zero() {
@@ -335,22 +335,19 @@ where
     /// let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
     /// assert_eq!(by_common, expected);
     /// ```
-    pub fn most_common_tiebreaker<F>(&self, tiebreaker: F) -> Vec<(T, N)>
+    pub fn most_common_tiebreaker<F>(&self, mut tiebreaker: F) -> Vec<(T, N)>
     where
-        F: Fn(&T, &T) -> ::std::cmp::Ordering,
+        F: FnMut(&T, &T) -> ::std::cmp::Ordering,
     {
-        use std::cmp::Ordering;
-
         let mut items = self
             .map
             .iter()
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
-        items.sort_by(|&(ref a_item, ref a_count), &(ref b_item, ref b_count)| {
-            match b_count.cmp(a_count) {
-                Ordering::Equal => tiebreaker(a_item, b_item),
-                unequal => unequal,
-            }
+        items.sort_by(|(a_item, a_count), (b_item, b_count)| {
+            b_count
+                .cmp(a_count)
+                .then_with(|| tiebreaker(a_item, b_item))
         });
         items
     }
@@ -373,7 +370,7 @@ where
     /// assert_eq!(mc, expect);
     /// ```
     pub fn most_common_ordered(&self) -> Vec<(T, N)> {
-        self.most_common_tiebreaker(|a, b| a.cmp(b))
+        self.most_common_tiebreaker(Ord::cmp)
     }
 }
 
@@ -411,7 +408,7 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn add_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.into_iter() {
+        for (key, value) in rhs.map {
             let entry = self.map.entry(key).or_insert_with(N::zero);
             *entry += value;
         }
@@ -471,7 +468,7 @@ where
     /// assert_eq!(c.into_map(), expect);
     /// ```
     fn sub_assign(&mut self, rhs: Self) {
-        for (key, value) in rhs.map.into_iter() {
+        for (key, value) in rhs.map {
             let mut remove = false;
             if let Some(entry) = self.map.get_mut(&key) {
                 if *entry >= value {
@@ -927,7 +924,7 @@ where
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
         let mut cnt = Counter::new();
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = cnt.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
         }
@@ -973,7 +970,7 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn extend<I: IntoIterator<Item = (T, N)>>(&mut self, iter: I) {
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = self.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
         }
@@ -999,7 +996,7 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn extend<I: IntoIterator<Item = (&'a T, &'a N)>>(&mut self, iter: I) {
-        for (item, item_count) in iter.into_iter() {
+        for (item, item_count) in iter {
             let entry = self.map.entry(item.clone()).or_insert_with(N::zero);
             *entry += item_count.clone();
         }
@@ -1154,6 +1151,24 @@ mod tests {
         let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
         let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
         assert!(by_common == expected);
+    }
+
+    // The main purpose of this test is to see that we can call `Counter::most_common_tiebreaker()`
+    // with a closure that is `FnMut` but not `Fn`.
+    #[test]
+    fn test_most_common_tiebreaker_fn_mut() {
+        let counter: Counter<_> = Counter::init("abracadabra".chars());
+        // Count how many times the tiebreaker closure is called.
+        let mut num_ties = 0;
+        let sorted = counter.most_common_tiebreaker(|a, b| {
+            num_ties += 1;
+            a.cmp(b)
+        });
+        let expected = vec![('a', 5), ('b', 2), ('r', 2), ('c', 1), ('d', 1)];
+        assert_eq!(sorted, expected);
+        // We should have called the tiebreaker twice: once to resolve the tie between `'b'` and
+        // `'r'` and once to resolve the tie between `'c'` and `'d'`.
+        assert_eq!(num_ties, 2);
     }
 
     #[test]
