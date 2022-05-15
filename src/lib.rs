@@ -1,4 +1,5 @@
-//! Counter counts recurrent elements of iterables. It is based on [the Python implementation](https://docs.python.org/3.5/library/collections.html#collections.Counter).
+//! Counter counts recurrent elements of iterables. It is based on [the Python
+//! implementation](https://docs.python.org/3/library/collections.html#collections.Counter).
 //!
 //! The struct [`Counter`](struct.Counter.html) is the entry-point type for this module.
 //!
@@ -33,7 +34,7 @@
 //! let difference = counts - other_counts;
 //! ```
 //!
-//! Extend a Counter with another Counter:
+//! Extend a `Counter` with another `Counter`:
 //! ```rust
 //! # use counter::Counter;
 //! # use std::collections::HashMap;
@@ -55,7 +56,10 @@
 //!
 //! ## Get the most common items
 //!
-//! `most_common_ordered()` uses the natural ordering of keys which are `Ord`.
+//! [`most_common_ordered()`] uses the natural ordering of keys which are [`Ord`].
+//!
+//! [`most_common_ordered()`]: Counter::most_common_ordered
+//! [`Ord`]: https://doc.rust-lang.org/stable/std/cmp/trait.Ord.html
 //!
 //! ```rust
 //! # use counter::Counter;
@@ -76,11 +80,15 @@
 //! assert!(by_common == expected);
 //! ```
 //!
-//! ## Treat it like a Map
+//! ## Treat it like a `HashMap`
 //!
-//! `Counter<T, N>` implements `Deref<Target=HashMap<T, N>>` and
-//! `DerefMut<Target=HashMap<T, N>>`, which means that you can perform any operations
-//! on it which are valid for a [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html).
+//! `Counter<T, N>` implements [`Deref`]`<Target=HashMap<T, N>>` and
+//! [`DerefMut`]`<Target=HashMap<T, N>>`, which means that you can perform any operations
+//! on it which are valid for a [`HashMap`].
+//!
+//! [`HashMap`]: https://doc.rust-lang.org/std/collections/struct.HashMap.html
+//! [`Deref`]: https://doc.rust-lang.org/stable/std/ops/trait.Deref.html
+//! [`DerefMut`]: https://doc.rust-lang.org/stable/std/ops/trait.DerefMut.html
 //!
 //! ```rust
 //! # use counter::Counter;
@@ -89,7 +97,11 @@
 //! assert!(counter == "aabbcc".chars().collect::<Counter<_>>());
 //! ```
 //!
-//! Note that `Counter<T, N>` itself implements `Index`. `Counter::index` returns a reference to a `zero` value for missing keys.
+//! Note that `Counter<T, N>` itself implements [`Index`]. `Counter::index` returns a reference to
+//! a [`Zero::zero`] value for missing keys.
+//!
+//! [`Index`]: https://doc.rust-lang.org/stable/std/ops/trait.Index.html
+//! [`Zero::zero`]: https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
 //!
 //! ```rust
 //! # use counter::Counter;
@@ -103,7 +115,10 @@
 //!
 //! ## Count any iterable which is `Hash + Eq`
 //!
-//! You can't use the `most_common*` functions unless T is also `Clone`, but simple counting works fine on a minimal data type.
+//! You can't use the `most_common*` functions unless `T` is also [`Clone`], but simple counting
+//! works fine on a minimal data type.
+//!
+//! [`Clone`]: https://doc.rust-lang.org/stable/std/clone/trait.Clone.html
 //!
 //! ```rust
 //! # use counter::Counter;
@@ -143,9 +158,12 @@
 //!
 //! ## Use your own type for the count
 //!
-//! Sometimes `usize` just isn't enough. If you find yourself overflowing your
-//! machine's native size, you can use your own type. Here, we use an `i8`, but
+//! Sometimes [`usize`] just isn't enough. If you find yourself overflowing your
+//! machine's native size, you can use your own type. Here, we use an [`i8`], but
 //! you can use most numeric types, including bignums, as necessary.
+//!
+//! [`usize`]: https://doc.rust-lang.org/stable/std/primitive.usize.html
+//! [`i8`]: https://doc.rust-lang.org/stable/std/primitive.i8.html
 //!
 //! ```rust
 //! # use counter::Counter;
@@ -176,7 +194,9 @@ impl<T, N> Counter<T, N>
 where
     T: Hash + Eq,
 {
-    /// Consumes this counter and returns a HashMap mapping the items to the counts.
+    /// Consumes this counter and returns a [`HashMap`] mapping the items to the counts.
+    ///
+    /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
     pub fn into_map(self) -> HashMap<T, N> {
         self.map
     }
@@ -223,7 +243,7 @@ where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
 {
-    /// Create a new `Counter` initialized with the given iterable
+    /// Create a new `Counter` initialized with the given iterable.
     pub fn init<I>(iterable: I) -> Counter<T, N>
     where
         I: IntoIterator<Item = T>,
@@ -233,7 +253,7 @@ where
         counter
     }
 
-    /// Add the counts of the elements from the given iterable to this counter
+    /// Add the counts of the elements from the given iterable to this counter.
     pub fn update<I>(&mut self, iterable: I)
     where
         I: IntoIterator<Item = T>,
@@ -250,9 +270,9 @@ where
     T: Hash + Eq,
     N: PartialOrd + SubAssign + Zero + One,
 {
-    /// Remove the counts of the elements from the given iterable to this counter
+    /// Remove the counts of the elements from the given iterable to this counter.
     ///
-    /// Non-positive counts are automatically removed
+    /// Non-positive counts are automatically removed.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -372,7 +392,7 @@ where
     T: Hash + Eq,
     N: Zero + AddAssign,
 {
-    /// Add another counter to this counter
+    /// Add another counter to this counter.
     ///
     /// `c += d;` -> `c[x] += d[x]` for all `x`
     ///
@@ -431,7 +451,10 @@ where
     /// Subtract (keeping only positive values).
     ///
     /// `c -= d;` -> `c[x] -= d[x]` for all `x`,
-    /// keeping only items with a value greater than N::zero().
+    /// keeping only items with a value greater than [`N::zero()`].
+    ///
+    /// [`N::zero()`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -474,7 +497,10 @@ where
     /// Subtract (keeping only positive values).
     ///
     /// `out = c - d;` -> `out[x] == c[x] - d[x]` for all `x`,
-    /// keeping only items with a value greater than N::zero().
+    /// keeping only items with a value greater than [`N::zero()`].
+    ///
+    /// [`N::zero()`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -500,7 +526,7 @@ where
 {
     type Output = Counter<T, N>;
 
-    /// Intersection
+    /// Returns the intersection of `self` and `rhs` as a new `Counter`.
     ///
     /// `out = c & d;` -> `out[x] == min(c[x], d[x])`
     ///
@@ -536,7 +562,7 @@ where
 {
     type Output = Counter<T, N>;
 
-    /// Union
+    /// Returns the union of `self` and `rhs` as a new `Counter`.
     ///
     /// `out = c | d;` -> `out[x] == max(c[x], d[x])`
     ///
@@ -616,7 +642,7 @@ where
     type Item = (T, N);
     type IntoIter = std::collections::hash_map::IntoIter<T, N>;
 
-    /// Consumes the Counter to produce an iterator that owns the values it returns
+    /// Consumes the `Counter` to produce an iterator that owns the values it returns.
     ///
     /// # Examples
     /// ```rust
@@ -648,7 +674,7 @@ where
     type Item = (&'a T, &'a mut N);
     type IntoIter = std::collections::hash_map::IterMut<'a, T, N>;
 
-    /// Creates an iterator that provides mutable references to the counts, but keeps the key immutable
+    /// Creates an iterator that provides mutable references to the counts, but keeps the keys immutable.
     ///
     /// # Examples
     /// ```rust
@@ -679,9 +705,12 @@ where
 {
     type Output = N;
 
-    /// Index in immutable contexts
+    /// Index in immutable contexts.
     ///
-    /// Returns a reference to a `zero` value for missing keys.
+    /// Returns a reference to a [`zero`] value for missing keys.
+    ///
+    /// [`zero`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
     ///
     /// ```
     /// # use counter::Counter;
@@ -692,7 +721,12 @@ where
     /// assert_eq!(counter[&'d'], 0);
     /// ```
     ///
-    /// Note that the `zero` is a struct filed but not one of the values of the inner `HashMap`. This method does not modify any existing value.
+    /// Note that the [`zero`] is a struct field but not one of the values of the inner
+    /// [`HashMap`].  This method does not modify any existing value.
+    ///
+    /// [`zero`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
+    /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
     ///
     /// ```
     /// # use counter::Counter;
@@ -711,9 +745,13 @@ where
     Q: Hash + Eq + ToOwned<Owned = T>,
     N: Zero,
 {
-    /// Index in mutable contexts
+    /// Index in mutable contexts.
     ///
-    /// If the given key is not present, creates a new entry and initializes it with a `zero` value.
+    /// If the given key is not present, creates a new entry and initializes it with a [`zero`]
+    /// value.
+    ///
+    /// [`zero`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
     ///
     /// ```
     /// # use counter::Counter;
@@ -724,7 +762,12 @@ where
     /// assert_eq!(counter[&'d'], 1);
     /// ```
     ///
-    /// Unlike `Index::index`, The returned mutable reference to the `zero` is actually one of the values of the inner `HashMap`.
+    /// Unlike `Index::index`, the returned mutable reference to the [`zero`] is actually one of the
+    /// values of the inner [`HashMap`].
+    ///
+    /// [`zero`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
+    /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
     ///
     /// ```
     /// # use counter::Counter;
@@ -744,7 +787,7 @@ where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
 {
-    /// Directly add the counts of the elements of `I` to `self`
+    /// Directly add the counts of the elements of `I` to `self`.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -768,8 +811,8 @@ where
     N: AddAssign + Zero + One,
 {
     type Output = Self;
-    /// Consume self producing a Counter like self updated with the counts of
-    /// the elements of I.
+    /// Consume `self` producing a `Counter` like `self` updated with the counts of
+    /// the elements of `I`.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -794,7 +837,10 @@ where
     N: PartialOrd + SubAssign + Zero + One,
 {
     /// Directly subtract the counts of the elements of `I` from `self`,
-    /// keeping only items with a value greater than N::zero().
+    /// keeping only items with a value greater than [`N::zero()`].
+    ///
+    /// [`N::zero()`]:
+    /// https://docs.rs/num-traits/latest/num_traits/identities/trait.Zero.html#tymethod.zero
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -817,8 +863,8 @@ where
     N: PartialOrd + SubAssign + Zero + One,
 {
     type Output = Self;
-    /// Consume self producing a Counter like self with the counts of the
-    /// elements of I subtracted, keeping only positive values.
+    /// Consume `self` producing a `Counter` like `self` with the counts of the
+    /// elements of `I` subtracted, keeping only positive values.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -840,8 +886,11 @@ where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
 {
-    /// Produce a Counter from an iterator of items. This is called automatically
-    /// by `iter.collect()`.
+    /// Produce a `Counter` from an iterator of items. This is called automatically
+    /// by [`Iterator::collect()`].
+    ///
+    /// [`Iterator::collect()`]:
+    /// https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.collect
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -861,7 +910,7 @@ where
     T: Hash + Eq,
     N: AddAssign + Zero,
 {
-    /// `from_iter` creates a counter from `(item, count)` tuples.
+    /// Creates a counter from `(item, count)` tuples.
     ///
     /// The counts of duplicate items are summed.
     /// ```rust
@@ -888,7 +937,7 @@ where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
 {
-    /// Extend a Counter with an iterator of items.
+    /// Extend a `Counter` with an iterator of items.
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -935,7 +984,7 @@ where
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
-    /// You can extend a Counter with another Counter:
+    /// You can extend a `Counter` with another `Counter`:
     /// ```rust
     /// # use counter::Counter;
     /// # use std::collections::HashMap;
