@@ -359,7 +359,7 @@ where
             .iter()
             .map(|(key, count)| (key.clone(), count.clone()))
             .collect::<Vec<_>>();
-        items.sort_by(|(a_item, a_count), (b_item, b_count)| {
+        items.sort_unstable_by(|(a_item, a_count), (b_item, b_count)| {
             b_count
                 .cmp(a_count)
                 .then_with(|| tiebreaker(a_item, b_item))
@@ -424,12 +424,25 @@ where
     /// and the number of swaps scales as *O*(log *n*).  As *k* approaches *n*, this algorithm
     /// approaches a heapsort of the *n* items, which has complexity *O*(*n* \* log *n*).
     ///
+    /// For values of *k* close to *n* the sorting algorithm used by [`most_common_ordered`] will
+    /// generally be faster than the heapsort used by this method by a small constant factor.
+    /// Exactly where the crossover point occurs will depend on several factors.  For small *k*
+    /// choose this method.  If *k* is a substantial fraction of *n*, it may be that
+    /// [`most_common_ordered`] is faster.  If performance matters in your application then it may
+    /// be worth experimenting to see which of the two methods is faster.
+    ///
     /// [`most_common_ordered`]: Counter::most_common_ordered
     pub fn k_most_common_ordered(&self, k: usize) -> Vec<(T, N)> {
         use std::cmp::Reverse;
 
         if k == 0 {
             return vec![];
+        }
+
+        // The quicksort implementation used by `most_common_ordered()` is generally faster than
+        // the heapsort used below when sorting the entire counter.
+        if k >= self.map.len() {
+            return self.most_common_ordered();
         }
 
         // Clone the counts as we iterate over the map to eliminate an extra indirection when
