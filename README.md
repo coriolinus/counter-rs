@@ -64,6 +64,20 @@ let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
 assert!(by_common == expected);
 ```
 
+[`k_most_common_ordered()`] takes an argument `k` of type `usize` and returns the top `k` most
+common items.  This is functionally equivalent to calling `most_common_ordered()` and then
+truncating the result to length `k`.  However, if `k` is smaller than the length of the counter
+then `k_most_common_ordered()` can be more efficient, often much more so.
+
+```rust
+let by_common = "eaddbbccc".chars().collect::<Counter<_>>().k_most_common_ordered(2);
+let expected = vec![('c', 3), ('b', 2)];
+assert!(by_common == expected);
+```
+
+[`k_most_common_ordered()`]: Counter::k_most_common_ordered
+[`most_common_ordered()`]: Counter::most_common_ordered
+
 ### Get the most common items using your own ordering
 
 For example, here we break ties reverse alphabetically.
