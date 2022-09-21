@@ -89,6 +89,49 @@ let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
 assert!(by_common == expected);
 ```
 
+### Test counters against another
+
+Counters are multi-sets and so can be sub- or supersets of each other.
+
+A counter is a _subset_ of another if for all its elements, the other
+counter has an equal or higher count. Test for this with [`is_subset()`]:
+
+```rust
+let counter = "aaabb".chars().collect::<Counter<_>>();
+let superset = "aaabbbc".chars().collect::<Counter<_>>();
+let not_a_superset = "aaae".chars().collect::<Counter<_>>();
+assert!(counter.is_subset(&superset));
+assert!(!counter.is_subset(&not_a_superset));
+```
+
+Testing for a _superset_ is the inverse, [`is_superset()`] is true if the counter can contain another counter in its entirety:
+
+```rust
+let counter = "aaabbbc".chars().collect::<Counter<_>>();
+let subset = "aabbb".chars().collect::<Counter<_>>();
+let not_a_subset = "aaae".chars().collect::<Counter<_>>();
+assert!(counter.is_superset(&subset));
+assert!(!counter.is_superset(&not_a_subset));
+```
+
+These relationships continue to work when [using a _signed_ integer type for the counter][signed]: all values in the subset must be equal or lower to the values in the superset. Negative
+values are interpreted as 'missing' those values, and the subset would need to miss those
+same elements, or be short more, to still be a subset:
+
+```rust
+let mut subset = "aaabb".chars().collect::<Counter<_, i8>>();
+subset.insert('e', -2);  // short 2 'e's
+subset.insert('f', -1);  // and 1 'f'
+let mut superset = "aaaabbb".chars().collect::<Counter<_, i8>>();
+superset.insert('e', -1);  // short 1 'e'
+assert!(subset.is_subset(&superset));
+assert!(superset.is_superset(&subset));
+```
+
+[`is_subset()`]: Counter::is_subset
+[`is_superset()`]: Counter::is_superset
+[signed]: #use-your-own-type-for-the-count
+
 ### Treat it like a `HashMap`
 
 `Counter<T, N>` implements [`Deref`]`<Target=HashMap<T, N>>` and
