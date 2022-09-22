@@ -95,6 +95,52 @@
 //! assert!(by_common == expected);
 //! ```
 //!
+//! ## Test counters against another
+//!
+//! Counters are multi-sets and so can be sub- or supersets of each other.
+//!
+//! A counter is a _subset_ of another if for all its elements, the other
+//! counter has an equal or higher count. Test for this with [`is_subset()`]:
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let counter = "aaabb".chars().collect::<Counter<_>>();
+//! let superset = "aaabbbc".chars().collect::<Counter<_>>();
+//! let not_a_superset = "aaae".chars().collect::<Counter<_>>();
+//! assert!(counter.is_subset(&superset));
+//! assert!(!counter.is_subset(&not_a_superset));
+//! ```
+//!
+//! Testing for a _superset_ is the inverse, [`is_superset()`] is true if the counter can contain another counter in its entirety:
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let counter = "aaabbbc".chars().collect::<Counter<_>>();
+//! let subset = "aabbb".chars().collect::<Counter<_>>();
+//! let not_a_subset = "aaae".chars().collect::<Counter<_>>();
+//! assert!(counter.is_superset(&subset));
+//! assert!(!counter.is_superset(&not_a_subset));
+//! ```
+//!
+//! These relationships continue to work when [using a _signed_ integer type for the counter][signed]: all values in the subset must be equal or lower to the values in the superset. Negative
+//! values are interpreted as 'missing' those values, and the subset would need to miss those
+//! same elements, or be short more, to still be a subset:
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let mut subset = "aaabb".chars().collect::<Counter<_, i8>>();
+//! subset.insert('e', -2);  // short 2 'e's
+//! subset.insert('f', -1);  // and 1 'f'
+//! let mut superset = "aaaabbb".chars().collect::<Counter<_, i8>>();
+//! superset.insert('e', -1);  // short 1 'e'
+//! assert!(subset.is_subset(&superset));
+//! assert!(superset.is_superset(&subset));
+//! ```
+//!
+//! [`is_subset()`]: Counter::is_subset
+//! [`is_superset()`]: Counter::is_superset
+//! [signed]: #use-your-own-type-for-the-count
+//!
 //! ## Treat it like a `HashMap`
 //!
 //! `Counter<T, N>` implements [`Deref`]`<Target=HashMap<T, N>>` and
@@ -619,6 +665,62 @@ where
     fn sub(mut self, rhs: Counter<T, N>) -> Self::Output {
         self -= rhs;
         self
+    }
+}
+
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: PartialOrd + Zero,
+{
+    /// Test whether this counter is a superset of another counter.
+    /// This is true if for all elements in this counter and the other,
+    /// the count in this counter is greater than or equal to the count in the other.
+    ///
+    /// `c.is_superset(&d);` -> `c.iter().all(|(x, n)| n >= d[x]) && d.iter().all(|(x, n)| c[x] >= n)`
+    ///
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let c = "aaabbc".chars().collect::<Counter<_>>();
+    /// let mut d = "abb".chars().collect::<Counter<_>>();
+    ///
+    /// assert!(c.is_superset(&d));
+    /// d[&'e'] = 1;
+    /// assert!(!c.is_superset(&d));
+    /// ```
+    pub fn is_superset(&self, other: &Self) -> bool {
+        // need to test keys from both counters, because if N is signed, counts in `self`
+        // could be < 0 for elements missing in `other`. For the unsigned case, only elements
+        // from `other` would need to be tested.
+        self.keys()
+            .chain(other.keys())
+            .all(|key| self[key] >= other[key])
+    }
+
+    /// Test whether this counter is a subset of another counter.
+    /// This is true if for all elements in this counter and the other,
+    /// the count in this counter is less than or equal to the count in the other.
+    ///
+    /// `c.is_subset(&d);` -> `c.iter().all(|(x, n)| n <= d[x]) && d.iter().all(|(x, n)| c[x] <= n)`
+    ///
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut c = "abb".chars().collect::<Counter<_>>();
+    /// let mut d = "aaabbc".chars().collect::<Counter<_>>();
+    ///
+    /// assert!(c.is_subset(&d));
+    /// c[&'e'] = 1;
+    /// assert!(!c.is_subset(&d));
+    /// ```
+    pub fn is_subset(&self, other: &Self) -> bool {
+        // need to test keys from both counters, because if N is signed, counts in `other`
+        // could be < 0 for elements missing in `self`. For the unsigned case, only elements
+        // from `self` would need to be tested.
+        self.keys()
+            .chain(other.keys())
+            .all(|key| self[key] <= other[key])
     }
 }
 
@@ -1500,5 +1602,31 @@ mod tests {
             'c' => 3,
         };
         assert!(counter.map == expected);
+    }
+
+    #[test]
+    fn test_superset_non_usize_count() {
+        let mut a: Counter<_, i8> = "abbcccc".chars().collect();
+        let mut b: Counter<_, i8> = "abb".chars().collect();
+        assert!(a.is_superset(&b));
+        // Negative values are possible, a is no longer a superset
+        a[&'e'] = -1;
+        assert!(!a.is_superset(&b));
+        // Adjust b to make a a superset again
+        b[&'e'] = -2;
+        assert!(a.is_superset(&b));
+    }
+
+    #[test]
+    fn test_subset_non_usize_count() {
+        let mut a: Counter<_, i8> = "abb".chars().collect();
+        let mut b: Counter<_, i8> = "abbcccc".chars().collect();
+        assert!(a.is_subset(&b));
+        // Negative values are possible; a is no longer a subset
+        b[&'e'] = -1;
+        assert!(!a.is_subset(&b));
+        // Adjust a to make it a subset again
+        a[&'e'] = -2;
+        assert!(a.is_subset(&b));
     }
 }
