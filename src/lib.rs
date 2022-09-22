@@ -141,6 +141,36 @@
 //! [`is_superset()`]: Counter::is_superset
 //! [signed]: #use-your-own-type-for-the-count
 //!
+//! ## Counter intersetion and union
+//!
+//! You can intersect two counters, giving you the minimal counts of their
+//! combined elements using the [`&` bitwise and operator][BitAnd], and produce
+//! their union with the maximum counts using [`|` bitwise or][BitOr]:
+//!
+//! ```rust
+//! # use counter::Counter;
+//! let a = "aaabb".chars().collect::<Counter<_>>();
+//! let b = "aabbbbe".chars().collect::<Counter<_>>();
+//!
+//! let intersection = a & b;
+//! let expected_intersection = "aabb".chars().collect::<Counter<_>>();
+//! assert_eq!(intersection, expected_intersection);
+//!
+//! let c = "aaabb".chars().collect::<Counter<_>>();
+//! let d = "aabbbbe".chars().collect::<Counter<_>>();
+//!
+//! let union = c | d;
+//! let expected_union = "aaabbbbe".chars().collect::<Counter<_>>();
+//! assert_eq!(union, expected_union)
+//! ```
+//!
+//! The in-place [`&=`] and [`|=`] operations are also supported.
+//!
+//! [BitAnd]: https://doc.rust-lang.org/std/ops/trait.BitAnd.html
+//! [BitOr]: https://doc.rust-lang.org/std/ops/trait.BitOr.html
+//! [`&=`]: https://doc.rust-lang.org/std/ops/trait.BitAndAssign.html
+//! [`|=`]: https://doc.rust-lang.org/std/ops/trait.BitOrAssign.html
+//!
 //! ## Treat it like a `HashMap`
 //!
 //! `Counter<T, N>` implements [`Deref`]`<Target=HashMap<T, N>>` and
@@ -240,7 +270,10 @@ use std::borrow::Borrow;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::iter;
-use std::ops::{Add, AddAssign, BitAnd, BitOr, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Deref, DerefMut, Index, IndexMut,
+    Sub, SubAssign,
+};
 
 type CounterMap<T, N> = HashMap<T, N>;
 
@@ -760,6 +793,35 @@ where
     }
 }
 
+impl<T, N> BitAndAssign for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Ord + Zero,
+{
+    /// Updates `self` with the intersection of `self` and `rhs`
+    ///
+    /// `c &= d;` -> `c[x] == min(c[x], d[x])`
+    ///
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut c = "aaab".chars().collect::<Counter<_>>();
+    /// let d = "abb".chars().collect::<Counter<_>>();
+    ///
+    /// c &= d;
+    ///
+    /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
+    /// assert_eq!(c.into_map(), expect);
+    /// ```
+    fn bitand_assign(&mut self, mut rhs: Counter<T, N>) {
+        for (key, rhs_count) in rhs.drain() {
+            if rhs_count < self[&key] {
+                self.map.insert(key, rhs_count);
+            }
+        }
+    }
+}
+
 impl<T, N> BitOr for Counter<T, N>
 where
     T: Hash + Eq,
@@ -806,6 +868,35 @@ where
             }
         }
         self
+    }
+}
+
+impl<T, N> BitOrAssign for Counter<T, N>
+where
+    T: Hash + Eq,
+    N: Ord + Zero,
+{
+    /// Updates `self` with the union of `self` and `rhs`
+    ///
+    /// `c |= d;` -> `c[x] == max(c[x], d[x])`
+    ///
+    /// ```rust
+    /// # use counter::Counter;
+    /// # use std::collections::HashMap;
+    /// let mut c = "aaab".chars().collect::<Counter<_>>();
+    /// let d = "abb".chars().collect::<Counter<_>>();
+    ///
+    /// c |= d;
+    ///
+    /// let expect = [('a', 3), ('b', 2)].iter().cloned().collect::<HashMap<_, _>>();
+    /// assert_eq!(c.into_map(), expect);
+    /// ```
+    fn bitor_assign(&mut self, mut rhs: Counter<T, N>) {
+        for (key, rhs_count) in rhs.drain() {
+            if rhs_count > self[&key] {
+                self.map.insert(key, rhs_count);
+            }
+        }
     }
 }
 

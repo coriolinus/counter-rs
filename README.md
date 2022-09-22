@@ -132,6 +132,35 @@ assert!(superset.is_superset(&subset));
 [`is_superset()`]: Counter::is_superset
 [signed]: #use-your-own-type-for-the-count
 
+### Counter intersetion and union
+
+You can intersect two counters, giving you the minimal counts of their
+combined elements using the [`&` bitwise and operator][BitAnd], and produce
+their union with the maximum counts using [`|` bitwise or][BitOr]:
+
+```rust
+let a = "aaabb".chars().collect::<Counter<_>>();
+let b = "aabbbbe".chars().collect::<Counter<_>>();
+
+let intersection = a & b;
+let expected_intersection = "aabb".chars().collect::<Counter<_>>();
+assert_eq!(intersection, expected_intersection);
+
+let c = "aaabb".chars().collect::<Counter<_>>();
+let d = "aabbbbe".chars().collect::<Counter<_>>();
+
+let union = c | d;
+let expected_union = "aaabbbbe".chars().collect::<Counter<_>>();
+assert_eq!(union, expected_union)
+```
+
+The in-place [`&=`] and [`|=`] operations are also supported.
+
+[BitAnd]: https://doc.rust-lang.org/std/ops/trait.BitAnd.html
+[BitOr]: https://doc.rust-lang.org/std/ops/trait.BitOr.html
+[`&=`]: https://doc.rust-lang.org/std/ops/trait.BitAndAssign.html
+[`|=`]: https://doc.rust-lang.org/std/ops/trait.BitOrAssign.html
+
 ### Treat it like a `HashMap`
 
 `Counter<T, N>` implements [`Deref`]`<Target=HashMap<T, N>>` and
