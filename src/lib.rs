@@ -141,7 +141,7 @@
 //! [`is_superset()`]: Counter::is_superset
 //! [signed]: #use-your-own-type-for-the-count
 //!
-//! ## Counter intersetion and union
+//! ## Counter intersection and union
 //!
 //! You can intersect two counters, giving you the minimal counts of their
 //! combined elements using the [`&` bitwise and operator][BitAnd], and produce
