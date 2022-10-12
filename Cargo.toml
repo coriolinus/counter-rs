@@ -6,7 +6,7 @@ description = "Simple package to count generic iterables"
 repository = "https://github.com/coriolinus/counter-rs"
 documentation = "https://docs.rs/counter"
 readme = "README.md"
-keywords = ["count"]
+keywords = ["count", "multiset", "bag"]
 license = "MIT"
 edition = "2018"
 
