@@ -3,6 +3,16 @@
 //!
 //! The struct [`Counter`](struct.Counter.html) is the entry-point type for this module.
 //!
+//! # Math Underpinnings
+//!
+//! Mathematically, a `Counter` implements a hash-based version of a [multiset],
+//! or bag. This is simply an extension of the notion of a set to the idea that
+//! we care not only about whether an entity exists within the set, but the number
+//! of occurrences within the set. Normal set operations such as intersection,
+//! union, etc. are of course still supported.
+//!
+//! [multiset]: https://en.wikipedia.org/wiki/Set_(abstract_data_type)#Multiset
+//!
 //! # Examples
 //!
 //! ## Just count an iterable
