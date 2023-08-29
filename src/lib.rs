@@ -274,6 +274,8 @@
 //! assert!(counter.into_map() == expected);
 //! ```
 
+mod impls;
+
 use num_traits::{One, Zero};
 
 use std::collections::{BinaryHeap, HashMap};
@@ -282,8 +284,6 @@ use std::iter;
 use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
-
-mod impls;
 
 type CounterMap<T, N> = HashMap<T, N>;
 
