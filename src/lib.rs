@@ -44,7 +44,7 @@
 //! let difference = counts - other_counts;
 //! ```
 //!
-//! Extend a `Counter` with another `Counter`:
+//! ## Extend a `Counter` with another `Counter`:
 //! ```rust
 //! # use counter::Counter;
 //! # use std::collections::HashMap;
