@@ -6,7 +6,7 @@ mod extend;
 mod from_iterator;
 mod index;
 mod intersection;
-mod into_iter;
+mod into_iterator;
 mod sub_iterable;
 mod sub_self;
 mod union;
