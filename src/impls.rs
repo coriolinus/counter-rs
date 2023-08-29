@@ -3,6 +3,7 @@ mod add_self;
 mod create;
 mod deref;
 mod extend;
+mod from_iterator;
 mod index;
 mod intersection;
 mod into_iter;
