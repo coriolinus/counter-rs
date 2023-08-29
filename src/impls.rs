@@ -1,6 +1,7 @@
 mod add_iterable;
 mod add_self;
 mod create;
+mod deref;
 mod extend;
 mod index;
 mod intersection;

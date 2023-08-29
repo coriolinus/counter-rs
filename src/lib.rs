@@ -279,7 +279,7 @@ use num_traits::{One, Zero};
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::iter;
-use std::ops::{AddAssign, Deref, DerefMut, SubAssign};
+use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
@@ -619,24 +619,5 @@ where
         self.keys()
             .chain(other.keys())
             .all(|key| self[key] <= other[key])
-    }
-}
-
-impl<T, N> Deref for Counter<T, N>
-where
-    T: Hash + Eq,
-{
-    type Target = CounterMap<T, N>;
-    fn deref(&self) -> &CounterMap<T, N> {
-        &self.map
-    }
-}
-
-impl<T, N> DerefMut for Counter<T, N>
-where
-    T: Hash + Eq,
-{
-    fn deref_mut(&mut self) -> &mut CounterMap<T, N> {
-        &mut self.map
     }
 }
