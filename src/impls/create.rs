@@ -34,17 +34,6 @@ where
         counter.update(iterable);
         counter
     }
-
-    /// Add the counts of the elements from the given iterable to this counter.
-    pub fn update<I>(&mut self, iterable: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        for item in iterable {
-            let entry = self.map.entry(item).or_insert_with(N::zero);
-            *entry += N::one();
-        }
-    }
 }
 
 

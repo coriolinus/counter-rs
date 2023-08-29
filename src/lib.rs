@@ -281,7 +281,7 @@ use num_traits::{One, Zero};
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::iter;
-use std::ops::SubAssign;
+use std::ops::{AddAssign,SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
@@ -329,7 +329,22 @@ where
 }
 
 
-
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: AddAssign + Zero + One,
+{
+    /// Add the counts of the elements from the given iterable to this counter.
+    pub fn update<I>(&mut self, iterable: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        for item in iterable {
+            let entry = self.map.entry(item).or_insert_with(N::zero);
+            *entry += N::one();
+        }
+    }
+}
 
 
 impl<T, N> Counter<T, N>
