@@ -12,7 +12,7 @@ where
     N: Zero,
 {
     /// Create a new, empty `Counter`
-    pub fn new() -> Counter<T, N> {
+    pub fn new() -> Self {
         Counter {
             map: HashMap::new(),
             zero: N::zero(),
@@ -26,7 +26,7 @@ where
     N: AddAssign + Zero + One,
 {
     /// Create a new `Counter` initialized with the given iterable.
-    pub fn init<I>(iterable: I) -> Counter<T, N>
+    pub fn init<I>(iterable: I) -> Self
     where
         I: IntoIterator<Item = T>,
     {
