@@ -280,7 +280,7 @@ use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::iter;
 use std::ops::{
-    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Deref, DerefMut, Sub, SubAssign,
+    AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Deref, DerefMut, Sub, SubAssign,
 };
 #[cfg(test)]
 mod unit_tests;
@@ -947,55 +947,6 @@ where
     /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.map.iter_mut()
-    }
-}
-
-impl<I, T, N> AddAssign<I> for Counter<T, N>
-where
-    I: IntoIterator<Item = T>,
-    T: Hash + Eq,
-    N: AddAssign + Zero + One,
-{
-    /// Directly add the counts of the elements of `I` to `self`.
-    ///
-    /// ```rust
-    /// # use counter::Counter;
-    /// # use std::collections::HashMap;
-    /// let mut counter = Counter::init("abbccc".chars());
-    ///
-    /// counter += "aeeeee".chars();
-    /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
-    ///     .iter().cloned().collect();
-    /// assert_eq!(counter.into_map(), expected);
-    /// ```
-    fn add_assign(&mut self, rhs: I) {
-        self.update(rhs);
-    }
-}
-
-impl<I, T, N> Add<I> for Counter<T, N>
-where
-    I: IntoIterator<Item = T>,
-    T: Hash + Eq,
-    N: AddAssign + Zero + One,
-{
-    type Output = Self;
-    /// Consume `self` producing a `Counter` like `self` updated with the counts of
-    /// the elements of `I`.
-    ///
-    /// ```rust
-    /// # use counter::Counter;
-    /// # use std::collections::HashMap;
-    /// let counter = Counter::init("abbccc".chars());
-    ///
-    /// let new_counter = counter + "aeeeee".chars();
-    /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
-    ///     .iter().cloned().collect();
-    /// assert_eq!(new_counter.into_map(), expected);
-    /// ```
-    fn add(mut self, rhs: I) -> Self::Output {
-        self.update(rhs);
-        self
     }
 }
 
