@@ -336,7 +336,6 @@ where
     N: Zero,
 {
     /// Create a new, empty `Counter`
-    #[must_use]
     pub fn new() -> Counter<T, N> {
         Counter {
             map: HashMap::new(),
