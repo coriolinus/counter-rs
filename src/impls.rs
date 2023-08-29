@@ -1,4 +1,5 @@
-mod add;
+mod add_iterable;
+mod add_self;
 mod index;
 mod intersection;
 mod sub_iterable;
