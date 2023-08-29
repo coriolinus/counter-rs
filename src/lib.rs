@@ -284,7 +284,8 @@ use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Deref, DerefMut, Index, IndexMut,
     Sub, SubAssign,
 };
-//mod unit_tests;
+#[cfg(test)]
+mod unit_tests;
 
 type CounterMap<T, N> = HashMap<T, N>;
 
