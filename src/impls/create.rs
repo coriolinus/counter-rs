@@ -1,8 +1,7 @@
 use crate::Counter;
 
-use num_traits::{One, Zero};
+use num_traits::Zero;
 
-use std::ops::AddAssign;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -19,23 +18,6 @@ where
         }
     }
 }
-
-impl<T, N> Counter<T, N>
-where
-    T: Hash + Eq,
-    N: AddAssign + Zero + One,
-{
-    /// Create a new `Counter` initialized with the given iterable.
-    pub fn init<I>(iterable: I) -> Self
-    where
-        I: IntoIterator<Item = T>,
-    {
-        let mut counter = Counter::new();
-        counter.update(iterable);
-        counter
-    }
-}
-
 
 impl<T, N> Default for Counter<T, N>
 where

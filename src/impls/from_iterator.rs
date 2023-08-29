@@ -6,6 +6,22 @@ use std::hash::Hash;
 use std::iter;
 use std::ops::AddAssign;
 
+impl<T, N> Counter<T, N>
+where
+    T: Hash + Eq,
+    N: AddAssign + Zero + One,
+{
+    /// Create a new `Counter` initialized with the given iterable.
+    pub fn init<I>(iterable: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let mut counter = Counter::new();
+        counter.update(iterable);
+        counter
+    }
+}
+
 impl<T, N> iter::FromIterator<T> for Counter<T, N>
 where
     T: Hash + Eq,

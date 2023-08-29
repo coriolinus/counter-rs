@@ -281,7 +281,7 @@ use num_traits::{One, Zero};
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::iter;
-use std::ops::{AddAssign,SubAssign};
+use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
@@ -328,7 +328,6 @@ where
     }
 }
 
-
 impl<T, N> Counter<T, N>
 where
     T: Hash + Eq,
@@ -345,7 +344,6 @@ where
         }
     }
 }
-
 
 impl<T, N> Counter<T, N>
 where
