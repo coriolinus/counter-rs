@@ -1,6 +1,29 @@
 use counter::Counter;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+#[inline]
+fn generate_alphabet_string(length: usize) -> String {
+    let alphabets_64 = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl";
+    let quotient = length / 64;
+    let remainder = length % 64;
+
+    let mut result = String::with_capacity(length);
+
+    for _ in 0..quotient {
+        result.push_str(alphabets_64);
+    }
+    result.push_str(&alphabets_64[0..remainder]);
+
+    result
+}
+
+#[allow(unused)]
+#[inline]
+fn create_from_length(test_string_len: usize) {
+    let test_string = generate_alphabet_string(test_string_len);
+    let counter_from_iter: Counter<char, usize> = Counter::init(test_string.chars());
+}
+
 #[allow(unused)]
 #[inline]
 fn update_a_count(black_box: usize) {
@@ -46,6 +69,13 @@ fn most_common_tiebreaker_benched(black_box: usize) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
+    c.bench_function("create from 1K length", |b| {
+        b.iter(|| create_from_length(black_box(1 << 10)))
+    });
+    c.bench_function("create from 1M length", |b| {
+        b.iter(|| create_from_length(black_box(1 << 20)))
+    });
+
     c.bench_function("just count an iterable", |b| {
         b.iter(|| get_most_common_items(black_box(20)))
     });
