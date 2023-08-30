@@ -3,22 +3,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[allow(unused)]
 #[inline]
-fn just_count_iterable(black_box: usize) {
-    let char_counts = "barefoot".chars().collect::<Counter<_>>();
-    let counts_counts = char_counts.values().collect::<Counter<_>>();
-}
-
-#[allow(unused)]
-#[inline]
 fn update_a_count(black_box: usize) {
-    let mut counts = "aaa".chars().collect::<Counter<_>>();
-    counts[&'a'] += 1;
-    counts[&'b'] += 1;
-}
-
-#[allow(unused)]
-#[inline]
-fn update_a_count_2(black_box: usize) {
     let mut counts = "able babble table babble rabble table able fable scrabble"
         .split_whitespace()
         .collect::<Counter<_>>();
