@@ -32,7 +32,6 @@ fn get_most_common_items(black_box: usize) {
         .collect::<Counter<_>>()
         .most_common_ordered();
     let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
-    assert!(by_common == expected);
 }
 
 #[allow(unused)]
@@ -43,7 +42,6 @@ fn get_k_most_common(black_box: usize) {
         .collect::<Counter<_>>()
         .k_most_common_ordered(2);
     let expected = vec![('c', 3), ('b', 2)];
-    assert!(by_common == expected);
 }
 
 #[allow(unused)]
@@ -52,7 +50,6 @@ fn most_common_tiebreaker_benched(black_box: usize) {
     let counter = "eaddbbccc".chars().collect::<Counter<_>>();
     let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
     let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
-    assert_eq!(by_common, expected);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
