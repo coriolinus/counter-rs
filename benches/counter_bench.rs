@@ -26,19 +26,6 @@ fn create_from_length(test_string_len: usize) {
 
 #[allow(unused)]
 #[inline]
-fn update_a_count(black_box: usize) {
-    let mut counts = "able babble table babble rabble table able fable scrabble"
-        .split_whitespace()
-        .collect::<Counter<_>>();
-    counts += "cain and abel fable table cable".split_whitespace();
-    let other_counts = "scrabble cabbie fable babble"
-        .split_whitespace()
-        .collect::<Counter<_>>();
-    let difference = counts - other_counts;
-}
-
-#[allow(unused)]
-#[inline]
 fn get_most_common_items(black_box: usize) {
     let by_common = "eaddbbccc"
         .chars()
