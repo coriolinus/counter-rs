@@ -13,6 +13,20 @@ fn test_creation() {
     expected.insert(&ONE, 1);
     assert!(counter.map == expected);
 }
+
+#[test]
+fn test_creation_with_capacity() {
+    let initializer = &[1];
+    let counter = Counter::init_with_capacity(initializer);
+
+    let mut expected = HashMap::with_capacity(1);
+    static ONE: usize = 1;
+    expected.insert(&ONE, 1);
+    assert!(counter.map == expected);
+    assert!(counter.map.capacity() == expected.capacity());
+}
+
+
 #[test]
 fn test_update() {
     let mut counter = Counter::init("abbccc".chars());
