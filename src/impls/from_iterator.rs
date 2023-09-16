@@ -20,6 +20,9 @@ where
         counter.update(iterable);
         counter
     }
+
+    /// Create a new `Counter` initialized with the given iterable.
+    /// Allocate with iterator size hints, defaulting to the lowerbound
     pub fn init_with_capacity<I>(iterable: I) -> Self
     where
         I: IntoIterator<Item = T>,
