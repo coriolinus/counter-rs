@@ -17,6 +17,13 @@ where
             zero: N::zero(),
         }
     }
+    #[must_use]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Counter {
+            map: HashMap::with_capacity(capacity),
+            zero: N::zero(),
+        }
+    }
 }
 
 impl<T, N> Default for Counter<T, N>
