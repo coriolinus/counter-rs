@@ -20,6 +20,19 @@ where
         counter.update(iterable);
         counter
     }
+    pub fn init_with_capacity<I>(iterable: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let iterator = iterable.into_iter();
+        let (lower_bound, upper_bound) = iterator.size_hint();
+
+        let capacity = upper_bound.unwrap_or(lower_bound);
+        let mut counter: Counter<T, N> = Counter::with_capacity(capacity);
+
+        counter.update(iterator);
+        counter
+    }
 }
 
 impl<T, N> iter::FromIterator<T> for Counter<T, N>
