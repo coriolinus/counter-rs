@@ -18,7 +18,7 @@ where
     /// ```rust
     /// # use counter::Counter;
     /// # use std::collections::HashMap;
-    /// let counter = Counter::init("abbccc".chars());
+    /// let counter = "abbccc".chars().collect::<Counter<_>>();
     ///
     /// let new_counter = counter + "aeeeee".chars();
     /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
@@ -42,7 +42,7 @@ where
     /// ```rust
     /// # use counter::Counter;
     /// # use std::collections::HashMap;
-    /// let mut counter = Counter::init("abbccc".chars());
+    /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
     ///
     /// counter += "aeeeee".chars();
     /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]

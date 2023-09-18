@@ -5,8 +5,7 @@ use std::collections::HashMap;
 fn test_creation() {
     let _: Counter<usize> = Counter::new();
 
-    let initializer = &[1];
-    let counter = Counter::init(initializer);
+    let counter = Counter::from_iter(&[1]);
 
     let mut expected = HashMap::new();
     static ONE: usize = 1;
@@ -15,7 +14,7 @@ fn test_creation() {
 }
 #[test]
 fn test_update() {
-    let mut counter = Counter::init("abbccc".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
     let expected = hashmap! {
         'a' => 1,
         'b' => 2,
@@ -35,7 +34,7 @@ fn test_update() {
 
 #[test]
 fn test_add_update_iterable() {
-    let mut counter = Counter::init("abbccc".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
     let expected = hashmap! {
         'a' => 1,
         'b' => 2,
@@ -55,7 +54,7 @@ fn test_add_update_iterable() {
 
 #[test]
 fn test_add_update_counter() {
-    let mut counter = Counter::init("abbccc".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
     let expected = hashmap! {
         'a' => 1,
         'b' => 2,
@@ -63,7 +62,7 @@ fn test_add_update_counter() {
     };
     assert!(counter.map == expected);
 
-    let other = Counter::init("aeeeee".chars());
+    let other = "aeeeee".chars().collect::<Counter<_>>();
     counter += other;
     let expected = hashmap! {
         'a' => 2,
@@ -76,7 +75,7 @@ fn test_add_update_counter() {
 
 #[test]
 fn test_subtract() {
-    let mut counter = Counter::init("abbccc".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
     counter.subtract("bbccddd".chars());
     let expected = hashmap! {
         'a' => 1,
@@ -87,7 +86,7 @@ fn test_subtract() {
 
 #[test]
 fn test_sub_update_iterable() {
-    let mut counter = Counter::init("abbccc".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
     counter -= "bbccddd".chars();
     let expected = hashmap! {
         'a' => 1,
@@ -98,8 +97,8 @@ fn test_sub_update_iterable() {
 
 #[test]
 fn test_sub_update_counter() {
-    let mut counter = Counter::init("abbccc".chars());
-    let other = Counter::init("bbccddd".chars());
+    let mut counter = "abbccc".chars().collect::<Counter<_>>();
+    let other = "bbccddd".chars().collect::<Counter<_>>();
     counter -= other;
     let expected = hashmap! {
         'a' => 1,
@@ -203,7 +202,7 @@ fn test_count_minimal_type() {
         Inty::new(9),
     ];
 
-    let inty_counts = Counter::init(intys);
+    let inty_counts = intys.into_iter().collect::<Counter<_>>();
     // println!("{:?}", inty_counts.map); // test runner blanks this
     // {Inty { i: 8 }: 2, Inty { i: 0 }: 3, Inty { i: 9 }: 1, Inty { i: 3 }: 1,
     //  Inty { i: 7 }: 1, Inty { i: 6 }: 1, Inty { i: 5 }: 1}
