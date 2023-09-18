@@ -23,7 +23,7 @@ where
     ///
     /// ```
     /// # use counter::Counter;
-    /// let counter = Counter::<_>::init("aabbcc".chars());
+    /// let counter = "aabbcc".chars().collect::<Counter<_>>();
     /// assert_eq!(counter[&'a'], 2);
     /// assert_eq!(counter[&'b'], 2);
     /// assert_eq!(counter[&'c'], 2);
@@ -39,7 +39,7 @@ where
     ///
     /// ```
     /// # use counter::Counter;
-    /// let counter = Counter::<_>::init("".chars());
+    /// let counter = "".chars().collect::<Counter<_>>();
     /// assert_eq!(counter[&'a'], 0);
     /// assert_eq!(counter.get(&'a'), None); // as `Deref<Target = HashMap<_, _>>`
     /// ```
@@ -64,7 +64,7 @@ where
     ///
     /// ```
     /// # use counter::Counter;
-    /// let mut counter = Counter::<_>::init("aabbcc".chars());
+    /// let mut counter = "aabbcc".chars().collect::<Counter<_>>();
     /// counter[&'c'] += 1;
     /// counter[&'d'] += 1;
     /// assert_eq!(counter[&'c'], 3);
@@ -80,7 +80,7 @@ where
     ///
     /// ```
     /// # use counter::Counter;
-    /// let mut counter = Counter::<_>::init("".chars());
+    /// let mut counter = "".chars().collect::<Counter<_>>();
     /// assert_eq!(counter.get(&'a'), None); // as `Deref<Target = HashMap<_, _>>`
     /// let _ = &mut counter[&'a'];
     /// assert_eq!(counter.get(&'a'), Some(&0));

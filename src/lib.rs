@@ -316,7 +316,7 @@ where
     ///
     /// ```
     /// # use counter::Counter;
-    /// let counter = Counter::init("abracadabra".chars());
+    /// let counter = "abracadabra".chars().collect::<Counter<_>>();
     /// assert_eq!(counter.total::<usize>(), 11);
     /// assert_eq!(counter.len(), 5);
     /// ```

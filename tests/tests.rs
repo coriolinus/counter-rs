@@ -5,19 +5,21 @@ mod tests {
 
     #[test]
     fn test_composite_add_sub() {
-        let mut counts = Counter::<_>::init(
-            "able babble table babble rabble table able fable scrabble".split_whitespace(),
-        );
+        let mut counts = "able babble table babble rabble table able fable scrabble"
+            .split_whitespace()
+            .collect::<Counter<_>>();
         // add or subtract an iterable of the same type
         counts += "cain and abel fable table cable".split_whitespace();
         // or add or subtract from another Counter of the same type
-        let other_counts = Counter::init("scrabble cabbie fable babble".split_whitespace());
+        let other_counts = "scrabble cabbie fable babble"
+            .split_whitespace()
+            .collect::<Counter<_>>();
         let _diff = counts - other_counts;
     }
 
     #[test]
     fn test_most_common() {
-        let counter = Counter::init("abbccc".chars());
+        let counter = "abbccc".chars().collect::<Counter<_>>();
         let by_common = counter.most_common();
         let expected = vec![('c', 3), ('b', 2), ('a', 1)];
         assert!(by_common == expected);
@@ -25,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_most_common_tiebreaker() {
-        let counter = Counter::init("eaddbbccc".chars());
+        let counter = "eaddbbccc".chars().collect::<Counter<_>>();
         let by_common = counter.most_common_tiebreaker(|&a, &b| a.cmp(&b));
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
@@ -33,7 +35,7 @@ mod tests {
 
     #[test]
     fn test_most_common_tiebreaker_reversed() {
-        let counter = Counter::init("eaddbbccc".chars());
+        let counter = "eaddbbccc".chars().collect::<Counter<_>>();
         let by_common = counter.most_common_tiebreaker(|&a, &b| b.cmp(&a));
         let expected = vec![('c', 3), ('d', 2), ('b', 2), ('e', 1), ('a', 1)];
         assert!(by_common == expected);
@@ -43,7 +45,7 @@ mod tests {
     // with a closure that is `FnMut` but not `Fn`.
     #[test]
     fn test_most_common_tiebreaker_fn_mut() {
-        let counter: Counter<_> = Counter::init("abracadabra".chars());
+        let counter: Counter<_> = "abracadabra".chars().collect::<Counter<_>>();
         // Count how many times the tiebreaker closure is called.
         let mut num_ties = 0;
         let sorted = counter.most_common_tiebreaker(|a, b| {
@@ -59,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_most_common_ordered() {
-        let counter = Counter::init("eaddbbccc".chars());
+        let counter = "eaddbbccc".chars().collect::<Counter<_>>();
         let by_common = counter.most_common_ordered();
         let expected = vec![('c', 3), ('b', 2), ('d', 2), ('a', 1), ('e', 1)];
         assert!(by_common == expected);
@@ -102,60 +104,60 @@ mod tests {
 
     #[test]
     fn test_total() {
-        let counter = Counter::init("".chars());
+        let counter = "".chars().collect::<Counter<_>>();
         let total: usize = counter.total();
         assert_eq!(total, 0);
 
-        let counter = Counter::init("eaddbbccc".chars());
+        let counter = "eaddbbccc".chars().collect::<Counter<_>>();
         let total: usize = counter.total();
         assert_eq!(total, 9);
     }
 
     #[test]
     fn test_add() {
-        let d = Counter::<_>::init("abbccc".chars());
-        let e = Counter::<_>::init("bccddd".chars());
+        let d = "abbccc".chars().collect::<Counter<_>>();
+        let e = "bccddd".chars().collect::<Counter<_>>();
 
         let out = d + e;
-        let expected = Counter::init("abbbcccccddd".chars());
+        let expected = "abbbcccccddd".chars().collect::<Counter<_>>();
         assert!(out == expected);
     }
 
     #[test]
     fn test_sub() {
-        let d = Counter::<_>::init("abbccc".chars());
-        let e = Counter::<_>::init("bccddd".chars());
+        let d = "abbccc".chars().collect::<Counter<_>>();
+        let e = "bccddd".chars().collect::<Counter<_>>();
 
         let out = d - e;
-        let expected = Counter::init("abc".chars());
+        let expected = "abc".chars().collect::<Counter<_>>();
         assert!(out == expected);
     }
 
     #[test]
     fn test_intersection() {
-        let d = Counter::<_>::init("abbccc".chars());
-        let e = Counter::<_>::init("bccddd".chars());
+        let d = "abbccc".chars().collect::<Counter<_>>();
+        let e = "bccddd".chars().collect::<Counter<_>>();
 
         let out = d & e;
-        let expected = Counter::init("bcc".chars());
+        let expected = "bcc".chars().collect::<Counter<_>>();
         assert!(out == expected);
     }
 
     #[test]
     fn test_union() {
-        let d = Counter::<_>::init("abbccc".chars());
-        let e = Counter::<_>::init("bccddd".chars());
+        let d = "abbccc".chars().collect::<Counter<_>>();
+        let e = "bccddd".chars().collect::<Counter<_>>();
 
         let out = d | e;
-        let expected = Counter::init("abbcccddd".chars());
+        let expected = "abbcccddd".chars().collect::<Counter<_>>();
         assert!(out == expected);
     }
 
     #[test]
     fn test_delete_key_from_backing_map() {
-        let mut counter = Counter::<_>::init("aa-bb-cc".chars());
+        let mut counter = "aa-bb-cc".chars().collect::<Counter<_>>();
         counter.remove(&'-');
-        assert!(counter == Counter::init("aabbcc".chars()));
+        assert!(counter == "aabbcc".chars().collect::<Counter<_>>());
     }
 
     #[test]
