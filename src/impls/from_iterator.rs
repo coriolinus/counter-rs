@@ -12,6 +12,7 @@ where
     N: AddAssign + Zero + One,
 {
     /// Create a new `Counter` initialized with the given iterable.
+    #[deprecated = "prefer the `FromIterator`/`collect` interface"]
     pub fn init<I>(iterable: I) -> Self
     where
         I: IntoIterator<Item = T>,
