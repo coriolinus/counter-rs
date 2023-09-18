@@ -12,13 +12,12 @@ where
     N: AddAssign + Zero + One,
 {
     /// Create a new `Counter` initialized with the given iterable.
+    #[deprecated = "prefer the `FromIterator`/`collect` interface"]
     pub fn init<I>(iterable: I) -> Self
     where
         I: IntoIterator<Item = T>,
     {
-        let mut counter = Counter::new();
-        counter.update(iterable);
-        counter
+        Self::from_iter(iterable)
     }
 
     /// Create a new `Counter` initialized with the given iterable.
@@ -57,8 +56,10 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     ///
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        Counter::<T, N>::init(iter)
+    fn from_iter<I: IntoIterator<Item = T>>(iterable: I) -> Self {
+        let mut counter = Counter::new();
+        counter.update(iterable);
+        counter
     }
 }
 
