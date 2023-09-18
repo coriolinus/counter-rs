@@ -22,17 +22,12 @@ where
 
     /// Create a new `Counter` initialized with the given iterable.
     /// Allocate with iterator size hints, defaulting to the lowerbound
-    pub fn init_with_capacity<I>(iterable: I) -> Self
+    pub fn init_with_capacity<I>(iterable: I, capacity: usize) -> Self
     where
         I: IntoIterator<Item = T>,
     {
-        let iterator = iterable.into_iter();
-        let (lower_bound, upper_bound) = iterator.size_hint();
-
-        let capacity = upper_bound.unwrap_or(lower_bound);
         let mut counter: Counter<T, N> = Counter::with_capacity(capacity);
-
-        counter.update(iterator);
+        counter.update(iterable);
         counter
     }
 }
