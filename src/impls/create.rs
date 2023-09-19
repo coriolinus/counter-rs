@@ -38,8 +38,8 @@ where
 {
     fn default() -> Self {
         Self {
-            map: Default::default(),
-            zero: Default::default(),
+            map: HashMap::default(),
+            zero: N::default(),
         }
     }
 }
