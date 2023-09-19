@@ -7,6 +7,7 @@ mod from_iterator;
 mod index;
 mod intersection;
 mod into_iterator;
+mod serialize;
 mod sub_iterable;
 mod sub_self;
 mod union;
