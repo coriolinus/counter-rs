@@ -498,9 +498,7 @@ where
     /// be worth experimenting to see which of the two methods is faster.
     ///
     /// [`most_common_ordered`]: Counter::most_common_ordered
-    ///
-    /// # Panics
-    /// Preconditions ensure that the current implementation does not panic. 
+    #[allow(clippy::missing_panics_doc)] // current implementation does not panic
     pub fn k_most_common_ordered(&self, k: usize) -> Vec<(T, N)> {
         use std::cmp::Reverse;
 
