@@ -17,6 +17,18 @@ where
             zero: N::zero(),
         }
     }
+
+    /// Create a new, empty `Counter` with the specified capacity.
+    ///
+    /// Note that `capacity` in this case indicates how many distinct items may be counted without reallocation.
+    /// It is not related to the total number of items which may be counted.
+    /// For example, `"aaa"` requires a capacity of 1. `"abc"` requires a capacity of 3.
+    pub fn with_capacity(capacity: usize) -> Self {
+        Counter {
+            map: HashMap::with_capacity(capacity),
+            zero: N::zero(),
+        }
+    }
 }
 
 impl<T, N> Default for Counter<T, N>
@@ -26,8 +38,8 @@ where
 {
     fn default() -> Self {
         Self {
-            map: Default::default(),
-            zero: Default::default(),
+            map: HashMap::default(),
+            zero: N::default(),
         }
     }
 }
