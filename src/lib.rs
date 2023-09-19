@@ -498,9 +498,9 @@ where
     /// be worth experimenting to see which of the two methods is faster.
     ///
     /// [`most_common_ordered`]: Counter::most_common_ordered
-    /// 
+    ///
     /// # Panics
-    /// Panics if heap is empty
+    /// Preconditions ensure that the current implementation does not panic. 
     pub fn k_most_common_ordered(&self, k: usize) -> Vec<(T, N)> {
         use std::cmp::Reverse;
 
