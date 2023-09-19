@@ -274,7 +274,6 @@
 //! assert!(counter.into_map() == expected);
 //! ```
 
-
 #![allow(clippy::must_use_candidate)]
 mod impls;
 
@@ -499,6 +498,9 @@ where
     /// be worth experimenting to see which of the two methods is faster.
     ///
     /// [`most_common_ordered`]: Counter::most_common_ordered
+    /// 
+    /// # Panics
+    /// Panics if heap is empty
     pub fn k_most_common_ordered(&self, k: usize) -> Vec<(T, N)> {
         use std::cmp::Reverse;
 
