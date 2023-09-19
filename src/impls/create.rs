@@ -38,7 +38,7 @@ where
 {
     fn default() -> Self {
         Self {
-            map: Default::default(),
+            map: HashMap::default(),
             zero: Default::default(),
         }
     }
