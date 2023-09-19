@@ -39,7 +39,7 @@ where
     fn default() -> Self {
         Self {
             map: HashMap::default(),
-            zero: Default::default(),
+            zero: N::default(),
         }
     }
 }
