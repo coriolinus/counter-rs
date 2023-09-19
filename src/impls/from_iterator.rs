@@ -19,17 +19,6 @@ where
     {
         Self::from_iter(iterable)
     }
-
-    /// Create a new `Counter` initialized with the given iterable.
-    /// Allocate with iterator size hints, defaulting to the lowerbound
-    pub fn init_with_capacity<I>(iterable: I, capacity: usize) -> Self
-    where
-        I: IntoIterator<Item = T>,
-    {
-        let mut counter: Counter<T, N> = Counter::with_capacity(capacity);
-        counter.update(iterable);
-        counter
-    }
 }
 
 impl<T, N> iter::FromIterator<T> for Counter<T, N>
