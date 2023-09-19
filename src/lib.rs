@@ -274,6 +274,8 @@
 //! assert!(counter.into_map() == expected);
 //! ```
 
+
+#![allow(clippy::must_use_candidate)]
 mod impls;
 
 use num_traits::{One, Zero};
