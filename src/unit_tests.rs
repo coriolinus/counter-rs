@@ -15,7 +15,7 @@ fn test_creation() {
 
 #[test]
 fn test_creation_with_capacity() {
-    let counter: Counter<usize,usize> = Counter::with_capacity(3);
+    let counter: Counter<usize, usize> = Counter::with_capacity(3);
     assert_eq!(counter.map.capacity(), 3);
 }
 
