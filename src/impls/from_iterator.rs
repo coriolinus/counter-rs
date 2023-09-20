@@ -65,11 +65,11 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
-        let mut cnt = Counter::new();
-        for (item, item_count) in iter {
-            let entry = cnt.map.entry(item).or_insert_with(N::zero);
-            *entry += item_count;
-        }
-        cnt
+        iter.into_iter()
+            .fold(Counter::new(), |mut cnt, (item, item_count)| {
+                let entry = cnt.map.entry(item).or_insert_with(N::zero);
+                *entry += item_count;
+                cnt
+            })
     }
 }
