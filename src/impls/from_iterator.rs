@@ -41,8 +41,11 @@ where
     /// ```
     ///
     fn from_iter<I: IntoIterator<Item = T>>(iterable: I) -> Self {
-        let mut counter = Counter::new();
-        counter.update(iterable);
+        let iterator = iterable.into_iter();
+        let (lowerbound, upperbound) = iterator.size_hint();
+        let capacity = upperbound.unwrap_or(lowerbound);
+        let mut counter = Counter::with_capacity(capacity);
+        counter.update(iterator);
         counter
     }
 }
