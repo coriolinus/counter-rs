@@ -75,11 +75,13 @@ where
         let (lowerbound, upperbound) = iterator.size_hint();
         let capacity = upperbound.unwrap_or(lowerbound);
 
-        let mut cnt = Counter::with_capacity(capacity);
-        for (item, item_count) in iterator {
-            let entry = cnt.map.entry(item).or_insert_with(N::zero);
-            *entry += item_count;
-        }
-        cnt
+        iterator.fold(
+            Counter::with_capacity(capacity),
+            |mut cnt, (item, item_count)| {
+                let entry = cnt.map.entry(item).or_insert_with(N::zero);
+                *entry += item_count;
+                cnt
+            },
+        )
     }
 }
