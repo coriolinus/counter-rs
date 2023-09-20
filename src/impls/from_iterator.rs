@@ -70,8 +70,13 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
-        let mut cnt = Counter::new();
-        for (item, item_count) in iter {
+        let iterator = iter.into_iter();
+
+        let (lowerbound, upperbound) = iterator.size_hint();
+        let capacity = upperbound.unwrap_or(lowerbound);
+
+        let mut cnt = Counter::with_capacity(capacity);
+        for (item, item_count) in iterator {
             let entry = cnt.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
         }
