@@ -15,6 +15,14 @@ union, etc. are of course still supported.
 
 [multiset]: https://en.wikipedia.org/wiki/Set_(abstract_data_type)#Multiset
 
+## Features
+
+### Serde Serialization
+
+Including `counter` in your `Corgo.toml` as `counter = { features = ["serde"] }`
+will enable you to serialize a `Counter` with `serde` just like any primitive 
+type.
+
 ## Examples
 
 ### Just count an iterable
