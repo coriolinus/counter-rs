@@ -187,6 +187,7 @@ mod tests {
         assert!(a.is_subset(&b));
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn test_serialize_deserialize() {
         let a = "abbccc".chars().collect::<Counter<_>>();
