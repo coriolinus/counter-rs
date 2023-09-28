@@ -2,6 +2,7 @@
 mod tests {
     use counter::Counter;
     use rand::Rng;
+    use serde_json;
 
     #[test]
     fn test_composite_add_sub() {
@@ -184,5 +185,13 @@ mod tests {
         // Adjust a to make it a subset again
         a[&'e'] = -2;
         assert!(a.is_subset(&b));
+    }
+
+    #[test]
+    fn test_serialize_deserialize() {
+        let a = "abbccc".chars().collect::<Counter<_>>();
+        let serialized = serde_json::to_string(&a).unwrap();
+        let b: Counter<char> = serde_json::from_str(&serialized).unwrap();
+        assert!(a == b)
     }
 }
