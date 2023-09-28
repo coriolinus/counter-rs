@@ -12,6 +12,13 @@ fn test_creation() {
     expected.insert(&ONE, 1);
     assert!(counter.map == expected);
 }
+
+#[test]
+fn test_creation_with_capacity() {
+    let counter: Counter<usize, usize> = Counter::with_capacity(3);
+    assert_eq!(counter.map.capacity(), 3);
+}
+
 #[test]
 fn test_update() {
     let mut counter = "abbccc".chars().collect::<Counter<_>>();
