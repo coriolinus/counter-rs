@@ -2,6 +2,8 @@
 mod tests {
     use counter::Counter;
     use rand::Rng;
+    #[cfg(feature = "serde")]
+    use serde_json;
 
     #[test]
     fn test_composite_add_sub() {
