@@ -2,7 +2,6 @@
 mod tests {
     use counter::Counter;
     use rand::Rng;
-    use serde_json;
 
     #[test]
     fn test_composite_add_sub() {
