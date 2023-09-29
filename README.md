@@ -15,13 +15,9 @@ union, etc. are of course still supported.
 
 [multiset]: https://en.wikipedia.org/wiki/Set_(abstract_data_type)#Multiset
 
-## Features
+## Cargo Features
 
-### Serde Serialization
-
-Including `counter` in your `Cargo.toml` as `counter = { features = ["serde"] }`
-will enable you to serialize a `Counter` with `serde` just like any primitive 
-type.
+- `serde` implements `serde::Serialize` and `serde::Deserialize` for `Counter`.
 
 ## Examples
 
