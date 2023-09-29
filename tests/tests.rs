@@ -185,4 +185,13 @@ mod tests {
         a[&'e'] = -2;
         assert!(a.is_subset(&b));
     }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_serialize_deserialize() {
+        let a = "abbccc".chars().collect::<Counter<_>>();
+        let serialized = serde_json::to_string(&a).unwrap();
+        let b: Counter<char> = serde_json::from_str(&serialized).unwrap();
+        assert!(a == b)
+    }
 }

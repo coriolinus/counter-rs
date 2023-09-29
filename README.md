@@ -15,6 +15,10 @@ union, etc. are of course still supported.
 
 [multiset]: https://en.wikipedia.org/wiki/Set_(abstract_data_type)#Multiset
 
+## Cargo Features
+
+- `serde` implements `serde::Serialize` and `serde::Deserialize` for `Counter`.
+
 ## Examples
 
 ### Just count an iterable
