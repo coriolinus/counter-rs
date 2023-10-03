@@ -1,6 +1,10 @@
 use crate::Counter;
 
+#[cfg(feature="ahash")]
+use ahash::HashMap;
+#[cfg(not(feature="ahash"))]
 use std::collections::HashMap;
+
 use std::hash::Hash;
 use std::ops::{Deref, DerefMut};
 

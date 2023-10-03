@@ -2,7 +2,11 @@ use crate::Counter;
 
 use num_traits::Zero;
 
+#[cfg(feature="ahash")]
+use ahash::{HashMap,HashMapExt};
+#[cfg(not(feature="ahash"))]
 use std::collections::HashMap;
+
 use std::hash::Hash;
 
 impl<T, N> Counter<T, N>

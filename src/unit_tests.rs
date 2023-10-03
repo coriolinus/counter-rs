@@ -1,6 +1,10 @@
 use crate::Counter;
 use maplit::hashmap;
+#[cfg(feature="ahash")]
+use ahash::{HashMap,HashMapExt};
+#[cfg(not(feature="ahash"))]
 use std::collections::HashMap;
+
 #[test]
 fn test_creation() {
     let _: Counter<usize> = Counter::new();

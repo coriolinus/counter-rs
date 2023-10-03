@@ -279,7 +279,12 @@ mod impls;
 
 use num_traits::{One, Zero};
 
-use std::collections::{BinaryHeap, HashMap};
+#[cfg(feature="ahash")]
+use ahash::HashMap;
+#[cfg(not(feature="ahash"))]
+use std::collections::HashMap;
+
+use std::collections::BinaryHeap;
 use std::hash::Hash;
 use std::iter;
 use std::ops::{AddAssign, SubAssign};
