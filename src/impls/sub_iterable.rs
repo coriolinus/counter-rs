@@ -22,7 +22,7 @@ where
     /// let e = c - "abb".chars();
     ///
     /// let expect = [('a', 2)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(e.into_map(), expect);
+    /// assert_eq!(e.into_map(), expect.into_iter().collect());
     /// ```
     fn sub(mut self, rhs: I) -> Self::Output {
         self.subtract(rhs);
@@ -49,7 +49,7 @@ where
     /// c -= "abb".chars();
     ///
     /// let expect = [('a', 2)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(c.into_map(), expect);
+    /// assert_eq!(c.into_map(), expect.into_iter().collect());
     /// ```
     fn sub_assign(&mut self, rhs: I) {
         self.subtract(rhs);

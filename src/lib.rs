@@ -53,7 +53,7 @@
 //! counter.extend(&another);
 //! let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter()
 //!     .cloned().collect::<HashMap<_, _>>();
-//! assert_eq!(counter.into_map(), expect);
+//! assert_eq!(counter.into_map(), expect.into_iter().collect());
 //! ```
 //! ## Get items with keys
 //!
@@ -271,7 +271,7 @@
 //! # use std::collections::HashMap;
 //! let counter: Counter<_, i8> = "abbccc".chars().collect();
 //! let expected: HashMap<char, i8> = [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
-//! assert!(counter.into_map() == expected);
+//! assert!(counter.into_map() == expected.into_iter().collect());
 //! ```
 
 #![allow(clippy::must_use_candidate)]
@@ -366,7 +366,7 @@ where
     /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
     /// counter.subtract("abba".chars());
     /// let expect = [('c', 3)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     pub fn subtract<I>(&mut self, iterable: I)
     where

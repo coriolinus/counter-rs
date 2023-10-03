@@ -23,7 +23,7 @@ where
     /// let new_counter = counter + "aeeeee".chars();
     /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
     ///     .iter().cloned().collect();
-    /// assert_eq!(new_counter.into_map(), expected);
+    /// assert_eq!(new_counter.into_map(), expected.into_iter().collect());
     /// ```
     fn add(mut self, rhs: I) -> Self::Output {
         self.update(rhs);
@@ -47,7 +47,7 @@ where
     /// counter += "aeeeee".chars();
     /// let expected: HashMap<char, usize> = [('a', 2), ('b', 2), ('c', 3), ('e', 5)]
     ///     .iter().cloned().collect();
-    /// assert_eq!(counter.into_map(), expected);
+    /// assert_eq!(counter.into_map(), expected.into_iter().collect());
     /// ```
     fn add_assign(&mut self, rhs: I) {
         self.update(rhs);

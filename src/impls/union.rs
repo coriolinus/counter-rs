@@ -25,7 +25,7 @@ where
     /// let e = c | d;
     ///
     /// let expect = [('a', 3), ('b', 2)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(e.into_map(), expect);
+    /// assert_eq!(e.into_map(), expect.into_iter().collect());
     /// ```
     fn bitor(mut self, rhs: Counter<T, N>) -> Self::Output {
         for (key, rhs_value) in rhs.map {
@@ -72,7 +72,7 @@ where
     /// c |= d;
     ///
     /// let expect = [('a', 3), ('b', 2)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(c.into_map(), expect);
+    /// assert_eq!(c.into_map(), expect.into_iter().collect());
     /// ```
     fn bitor_assign(&mut self, mut rhs: Counter<T, N>) {
         for (key, rhs_count) in rhs.drain() {

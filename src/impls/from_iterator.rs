@@ -37,7 +37,7 @@ where
     /// # use std::collections::HashMap;
     /// let counter = "abbccc".chars().collect::<Counter<_>>();
     /// let expect = [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     ///
     fn from_iter<I: IntoIterator<Item = T>>(iterable: I) -> Self {
@@ -62,7 +62,7 @@ where
     ///     .cloned().collect::<Counter<_>>();
     /// let expect = [('a', 5), ('b', 2), ('c', 3)].iter()
     ///     .cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
         let mut cnt = Counter::new();

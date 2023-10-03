@@ -18,7 +18,7 @@ where
     /// let mut counter = "abbccc".chars().collect::<Counter<_>>();
     /// counter.extend("bccddd".chars());
     /// let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         self.update(iter);
@@ -40,7 +40,7 @@ where
     /// counter.extend([('a', 1), ('b', 2), ('c', 3), ('a', 4)].iter().cloned());
     /// let expect = [('a', 6), ('b', 4), ('c', 6)].iter()
     ///     .cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     fn extend<I: IntoIterator<Item = (T, N)>>(&mut self, iter: I) {
         for (item, item_count) in iter {
@@ -66,7 +66,7 @@ where
     /// counter.extend(&another);
     /// let expect = [('a', 1), ('b', 3), ('c', 5), ('d', 3)].iter()
     ///     .cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(counter.into_map(), expect);
+    /// assert_eq!(counter.into_map(), expect.into_iter().collect());
     /// ```
     fn extend<I: IntoIterator<Item = (&'a T, &'a N)>>(&mut self, iter: I) {
         for (item, item_count) in iter {

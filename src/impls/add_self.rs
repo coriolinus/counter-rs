@@ -25,7 +25,7 @@ where
     /// let e = c + d;
     ///
     /// let expect = [('a', 4), ('b', 3)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(e.into_map(), expect);
+    /// assert_eq!(e.into_map(), expect.into_iter().collect());
     /// ```
     fn add(mut self, rhs: Counter<T, N>) -> Self::Output {
         self += rhs;
@@ -51,7 +51,7 @@ where
     /// c += d;
     ///
     /// let expect = [('a', 4), ('b', 3)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(c.into_map(), expect);
+    /// assert_eq!(c.into_map(), expect.into_iter().collect());
     /// ```
     fn add_assign(&mut self, rhs: Self) {
         for (key, value) in rhs.map {

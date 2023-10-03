@@ -25,7 +25,7 @@ where
     /// let e = c & d;
     ///
     /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(e.into_map(), expect);
+    /// assert_eq!(e.into_map(), expect.into_iter().collect());
     /// ```
     fn bitand(self, mut rhs: Counter<T, N>) -> Self::Output {
         use std::cmp::min;
@@ -59,7 +59,7 @@ where
     /// c &= d;
     ///
     /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
-    /// assert_eq!(c.into_map(), expect);
+    /// assert_eq!(c.into_map(), expect.into_iter().collect());
     /// ```
     fn bitand_assign(&mut self, mut rhs: Counter<T, N>) {
         for (key, rhs_count) in rhs.drain() {
