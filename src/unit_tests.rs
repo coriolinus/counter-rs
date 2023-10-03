@@ -31,7 +31,8 @@ fn test_update() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+
+    assert!(counter.map == expected.into_iter().collect());
 
     counter.update("aeeeee".chars());
     let expected = hashmap! {
@@ -40,7 +41,7 @@ fn test_update() {
         'c' => 3,
         'e' => 5,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -51,7 +52,7 @@ fn test_add_update_iterable() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 
     counter += "aeeeee".chars();
     let expected = hashmap! {
@@ -60,7 +61,7 @@ fn test_add_update_iterable() {
         'c' => 3,
         'e' => 5,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -71,7 +72,7 @@ fn test_add_update_counter() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 
     let other = "aeeeee".chars().collect::<Counter<_>>();
     counter += other;
@@ -81,7 +82,7 @@ fn test_add_update_counter() {
         'c' => 3,
         'e' => 5,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -92,7 +93,7 @@ fn test_subtract() {
         'a' => 1,
         'c' => 1,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -103,7 +104,7 @@ fn test_sub_update_iterable() {
         'a' => 1,
         'c' => 1,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -115,7 +116,7 @@ fn test_sub_update_counter() {
         'a' => 1,
         'c' => 1,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -126,7 +127,7 @@ fn test_from_iter_simple() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -160,7 +161,7 @@ fn test_extend_simple() {
         'c' => 5,
         'd' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -174,7 +175,7 @@ fn test_extend_tuple() {
         'c' => 5,
         'd' => 3,
     };
-    assert_eq!(counter.map, expected);
+    assert_eq!(counter.map, expected.into_iter().collect());
 }
 
 #[test]
@@ -230,7 +231,7 @@ fn test_collect() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
 
 #[test]
@@ -241,5 +242,5 @@ fn test_non_usize_count() {
         'b' => 2,
         'c' => 3,
     };
-    assert!(counter.map == expected);
+    assert!(counter.map == expected.into_iter().collect());
 }
