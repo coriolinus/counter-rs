@@ -11,6 +11,7 @@ license = "MIT"
 edition = "2021"
 
 [features]
+default = ["ahash"]
 ahash = ["dep:ahash"]
 
 [dependencies]
