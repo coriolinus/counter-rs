@@ -1,6 +1,6 @@
 [package]
 name = "counter"
-version = "0.5.7"
+version = "0.6.0"
 authors = ["Peter Goodspeed-Niklaus <peter.r.goodspeedniklaus@gmail.com>"]
 description = "Simple package to count generic iterables"
 repository = "https://github.com/coriolinus/counter-rs"
@@ -12,7 +12,7 @@ edition = "2021"
 
 [dependencies]
 num-traits = "0.2"
-serde = { version = "1.0.188", optional = true}
+serde = { version = "1.0.188", optional = true }
 
 [dev-dependencies]
 maplit = "1.0"
