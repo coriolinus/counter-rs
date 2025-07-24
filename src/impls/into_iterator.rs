@@ -40,7 +40,6 @@ where
     ///     }
     /// }
     /// ```
-
     fn into_iter(self) -> Self::IntoIter {
         self.map.into_iter()
     }
