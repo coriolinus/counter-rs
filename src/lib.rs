@@ -286,19 +286,32 @@ use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
-type CounterMap<T, N> = HashMap<T, N>;
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Counter<T: Hash + Eq, N = usize> {
-    map: CounterMap<T, N>,
+#[derive(Clone, Debug)]
+pub struct Counter<T, N = usize> {
+    map: HashMap<T, N>,
     // necessary for `Index::index` since we cannot declare generic `static` variables.
     zero: N,
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N> PartialEq for Counter<T, N>
 where
-    T: Hash + Eq,
+    T: Eq + Hash,
+    N: PartialEq,
 {
+    fn eq(&self, other: &Self) -> bool {
+        // ignore the zero
+        self.map == other.map
+    }
+}
+
+impl<T, N> Eq for Counter<T, N>
+where
+    T: Eq + Hash,
+    N: Eq,
+{
+}
+
+impl<T, N> Counter<T, N> {
     /// Consumes this counter and returns a [`HashMap`] mapping the items to the counts.
     ///
     /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
@@ -498,7 +511,6 @@ where
     /// be worth experimenting to see which of the two methods is faster.
     ///
     /// [`most_common_ordered`]: Counter::most_common_ordered
-    #[allow(clippy::missing_panics_doc)] // current implementation does not panic
     pub fn k_most_common_ordered(&self, k: usize) -> Vec<(T, N)> {
         use std::cmp::Reverse;
 

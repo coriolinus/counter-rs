@@ -33,7 +33,6 @@ where
 
 impl<T, N> Default for Counter<T, N>
 where
-    T: Hash + Eq,
     N: Default,
 {
     fn default() -> Self {
