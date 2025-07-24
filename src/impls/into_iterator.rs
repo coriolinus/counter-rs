@@ -1,10 +1,11 @@
 use crate::Counter;
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 
-impl<'a, T, N> IntoIterator for &'a Counter<T, N>
+impl<'a, T, N, S> IntoIterator for &'a Counter<T, N, S>
 where
     T: Hash + Eq,
+    S: BuildHasher + Default,
 {
     type Item = (&'a T, &'a N);
     type IntoIter = std::collections::hash_map::Iter<'a, T, N>;
@@ -14,9 +15,10 @@ where
     }
 }
 
-impl<T, N> IntoIterator for Counter<T, N>
+impl<T, N, S> IntoIterator for Counter<T, N, S>
 where
     T: Hash + Eq,
+    S: BuildHasher + Default,
 {
     type Item = (T, N);
     type IntoIter = std::collections::hash_map::IntoIter<T, N>;
@@ -45,9 +47,10 @@ where
     }
 }
 
-impl<'a, T, N> IntoIterator for &'a mut Counter<T, N>
+impl<'a, T, N, S> IntoIterator for &'a mut Counter<T, N, S>
 where
     T: Hash + Eq,
+    S: BuildHasher + Default,
 {
     type Item = (&'a T, &'a mut N);
     type IntoIter = std::collections::hash_map::IterMut<'a, T, N>;

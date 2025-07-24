@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod tests {
+    use std::{any::Any, ops::Deref};
+
     use counter::Counter;
     use rand::Rng;
+    use std::hash::{BuildHasher, Hasher, RandomState};
 
     #[test]
     fn test_composite_add_sub() {
@@ -186,6 +189,33 @@ mod tests {
         assert!(a.is_subset(&b));
     }
 
+    #[test]
+    fn test_custom_hasher() {
+        let custom_hashed_counter: Counter<_, usize, _> =
+            "abbccc".chars().collect::<Counter<_, _, TestBuildHasher>>();
+        let default_counter: Counter<_> = "abbccc".chars().collect();
+
+        // Check that the hashers for the underlying maps have the correct type id.
+        assert_eq!(
+            custom_hashed_counter.deref().hasher().type_id(),
+            TestBuildHasher.type_id()
+        );
+        assert_eq!(
+            default_counter.deref().hasher().type_id(),
+            RandomState::default().type_id()
+        );
+
+        // Negative check - Ensure not just getting false positives
+        assert_ne!(
+            custom_hashed_counter.deref().hasher().type_id(),
+            RandomState::default().type_id()
+        );
+        assert_ne!(
+            default_counter.deref().hasher().type_id(),
+            TestBuildHasher.type_id()
+        );
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_serialize_deserialize() {
@@ -193,5 +223,31 @@ mod tests {
         let serialized = serde_json::to_string(&a).unwrap();
         let b: Counter<char> = serde_json::from_str(&serialized).unwrap();
         assert!(a == b)
+    }
+
+    #[derive(Default)]
+    struct TestHasher {
+        hash: u64,
+    }
+
+    impl Hasher for TestHasher {
+        fn write(&mut self, bytes: &[u8]) {
+            self.hash = bytes.len() as u64;
+        }
+
+        fn finish(&self) -> u64 {
+            self.hash
+        }
+    }
+
+    #[derive(Default, Clone)]
+    struct TestBuildHasher;
+
+    impl BuildHasher for TestBuildHasher {
+        type Hasher = TestHasher;
+
+        fn build_hasher(&self) -> Self::Hasher {
+            TestHasher::default()
+        }
     }
 }

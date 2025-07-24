@@ -280,19 +280,34 @@ mod impls;
 use num_traits::{One, Zero};
 
 use std::collections::{BinaryHeap, HashMap};
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash, RandomState};
 use std::iter;
 use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
-type CounterMap<T, N> = HashMap<T, N>;
+type CounterMap<T, N, S> = HashMap<T, N, S>;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Counter<T: Hash + Eq, N = usize> {
-    map: CounterMap<T, N>,
+#[derive(Clone, Eq, Debug)]
+pub struct Counter<T: Hash + Eq, N = usize, S = RandomState>
+where
+    T: Hash + Eq,
+    S: BuildHasher + Default,
+{
+    map: CounterMap<T, N, S>,
     // necessary for `Index::index` since we cannot declare generic `static` variables.
     zero: N,
+}
+
+impl<T, N, S> PartialEq for Counter<T, N, S>
+where
+    T: Hash + Eq,
+    N: PartialEq,
+    S: BuildHasher + Default,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.map == other.map // Compare only the maps
+    }
 }
 
 impl<T, N> Counter<T, N>
@@ -329,10 +344,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
+    S: BuildHasher + Default,
 {
     /// Add the counts of the elements from the given iterable to this counter.
     pub fn update<I>(&mut self, iterable: I)
@@ -346,10 +362,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + SubAssign + Zero + One,
+    S: BuildHasher + Default,
 {
     /// Remove the counts of the elements from the given iterable to this counter.
     ///
@@ -382,10 +399,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq + Clone,
     N: Clone + Ord,
+    S: BuildHasher + Default,
 {
     /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
     ///
@@ -434,10 +452,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq + Clone + Ord,
     N: Clone + Ord,
+    S: BuildHasher + Default,
 {
     /// Create a vector of `(elem, frequency)` pairs, sorted most to least common.
     ///
@@ -544,10 +563,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + Zero,
+    S: BuildHasher + Default,
 {
     /// Test whether this counter is a superset of another counter.
     /// This is true if for all elements in this counter and the other,
