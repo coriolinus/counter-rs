@@ -5,7 +5,7 @@ use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 
 use crate::Counter;
 
-impl<T, N> Serialize for Counter<T, N>
+impl<T, N, St> Serialize for Counter<T, N, St>
 where
     T: Serialize,
     N: Serialize,
@@ -18,10 +18,11 @@ where
     }
 }
 
-impl<'de, T, N> Deserialize<'de> for Counter<T, N>
+impl<'de, T, N, St> Deserialize<'de> for Counter<T, N, St>
 where
     T: Deserialize<'de> + Hash + Eq,
     N: Deserialize<'de> + Zero,
+    St: Default,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

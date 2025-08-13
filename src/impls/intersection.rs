@@ -2,15 +2,16 @@ use crate::Counter;
 
 use num_traits::Zero;
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{BitAnd, BitAndAssign};
 
-impl<T, N> BitAnd for Counter<T, N>
+impl<T, N, S> BitAnd for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Ord + Zero,
+    S: BuildHasher + Default,
 {
-    type Output = Counter<T, N>;
+    type Output = Counter<T, N, S>;
 
     /// Returns the intersection of `self` and `rhs` as a new `Counter`.
     ///
@@ -27,7 +28,7 @@ where
     /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(e.into_map(), expect);
     /// ```
-    fn bitand(self, mut rhs: Counter<T, N>) -> Self::Output {
+    fn bitand(self, mut rhs: Counter<T, N, S>) -> Self::Output {
         use std::cmp::min;
 
         let mut counter = Counter::new();
@@ -41,10 +42,11 @@ where
     }
 }
 
-impl<T, N> BitAndAssign for Counter<T, N>
+impl<T, N, S> BitAndAssign for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Ord + Zero,
+    S: BuildHasher,
 {
     /// Updates `self` with the intersection of `self` and `rhs`
     ///
@@ -61,7 +63,7 @@ where
     /// let expect = [('a', 1), ('b', 1)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(c.into_map(), expect);
     /// ```
-    fn bitand_assign(&mut self, mut rhs: Counter<T, N>) {
+    fn bitand_assign(&mut self, mut rhs: Counter<T, N, S>) {
         for (key, rhs_count) in rhs.drain() {
             if rhs_count < self[&key] {
                 self.map.insert(key, rhs_count);

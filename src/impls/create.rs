@@ -5,15 +5,16 @@ use num_traits::Zero;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Zero,
+    S: Default,
 {
     /// Create a new, empty `Counter`
     pub fn new() -> Self {
         Counter {
-            map: HashMap::new(),
+            map: HashMap::<T, N, S>::default(),
             zero: N::zero(),
         }
     }
@@ -25,15 +26,16 @@ where
     /// For example, `"aaa"` requires a capacity of 1. `"abc"` requires a capacity of 3.
     pub fn with_capacity(capacity: usize) -> Self {
         Counter {
-            map: HashMap::with_capacity(capacity),
+            map: HashMap::with_capacity_and_hasher(capacity, S::default()),
             zero: N::zero(),
         }
     }
 }
 
-impl<T, N> Default for Counter<T, N>
+impl<T, N, S> Default for Counter<T, N, S>
 where
     N: Default,
+    S: Default,
 {
     fn default() -> Self {
         Self {

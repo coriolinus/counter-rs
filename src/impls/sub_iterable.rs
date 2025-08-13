@@ -2,14 +2,15 @@ use crate::Counter;
 
 use num_traits::{One, Zero};
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{Sub, SubAssign};
 
-impl<I, T, N> Sub<I> for Counter<T, N>
+impl<I, T, N, S> Sub<I> for Counter<T, N, S>
 where
     I: IntoIterator<Item = T>,
     T: Hash + Eq,
     N: PartialOrd + SubAssign + Zero + One,
+    S: BuildHasher,
 {
     type Output = Self;
     /// Consume `self` producing a `Counter` like `self` with the counts of the

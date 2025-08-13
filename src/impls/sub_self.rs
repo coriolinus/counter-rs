@@ -2,15 +2,16 @@ use crate::Counter;
 
 use num_traits::Zero;
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{Sub, SubAssign};
 
-impl<T, N> Sub for Counter<T, N>
+impl<T, N, S> Sub for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + PartialEq + SubAssign + Zero,
+    S: BuildHasher,
 {
-    type Output = Counter<T, N>;
+    type Output = Counter<T, N, S>;
 
     /// Subtract (keeping only positive values).
     ///
@@ -31,16 +32,17 @@ where
     /// let expect = [('a', 2)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(e.into_map(), expect);
     /// ```
-    fn sub(mut self, rhs: Counter<T, N>) -> Self::Output {
+    fn sub(mut self, rhs: Counter<T, N, S>) -> Self::Output {
         self -= rhs;
         self
     }
 }
 
-impl<T, N> SubAssign for Counter<T, N>
+impl<T, N, S> SubAssign for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + PartialEq + SubAssign + Zero,
+    S: BuildHasher,
 {
     /// Subtract (keeping only positive values).
     ///

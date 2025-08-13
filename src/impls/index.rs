@@ -3,14 +3,15 @@ use crate::Counter;
 use num_traits::Zero;
 
 use std::borrow::Borrow;
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{Index, IndexMut};
 
-impl<T, Q, N> Index<&'_ Q> for Counter<T, N>
+impl<T, Q, N, S> Index<&'_ Q> for Counter<T, N, S>
 where
     T: Hash + Eq + Borrow<Q>,
     Q: Hash + Eq,
     N: Zero,
+    S: BuildHasher,
 {
     type Output = N;
 
@@ -48,11 +49,12 @@ where
     }
 }
 
-impl<T, Q, N> IndexMut<&'_ Q> for Counter<T, N>
+impl<T, Q, N, S> IndexMut<&'_ Q> for Counter<T, N, S>
 where
     T: Hash + Eq + Borrow<Q>,
     Q: Hash + Eq + ToOwned<Owned = T>,
     N: Zero,
+    S: BuildHasher,
 {
     /// Index in mutable contexts.
     ///

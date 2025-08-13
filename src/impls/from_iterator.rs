@@ -2,14 +2,15 @@ use crate::Counter;
 
 use num_traits::{One, Zero};
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::iter;
 use std::ops::AddAssign;
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
+    S: BuildHasher + Default,
 {
     /// Create a new `Counter` initialized with the given iterable.
     #[deprecated = "prefer the `FromIterator`/`collect` interface"]
@@ -21,10 +22,11 @@ where
     }
 }
 
-impl<T, N> iter::FromIterator<T> for Counter<T, N>
+impl<T, N, S> iter::FromIterator<T> for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
+    S: BuildHasher + Default,
 {
     /// Produce a `Counter` from an iterator of items. This is called automatically
     /// by [`Iterator::collect()`].
