@@ -2,15 +2,16 @@ use crate::Counter;
 
 use num_traits::Zero;
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{Add, AddAssign};
 
-impl<T, N> Add for Counter<T, N>
+impl<T, N, S> Add for Counter<T, N, S>
 where
     T: Clone + Hash + Eq,
     N: AddAssign + Zero,
+    S: BuildHasher,
 {
-    type Output = Counter<T, N>;
+    type Output = Counter<T, N, S>;
 
     /// Add two counters together.
     ///
@@ -27,16 +28,17 @@ where
     /// let expect = [('a', 4), ('b', 3)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(e.into_map(), expect);
     /// ```
-    fn add(mut self, rhs: Counter<T, N>) -> Self::Output {
+    fn add(mut self, rhs: Counter<T, N, S>) -> Self::Output {
         self += rhs;
         self
     }
 }
 
-impl<T, N> AddAssign for Counter<T, N>
+impl<T, N, S> AddAssign for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Zero + AddAssign,
+    S: BuildHasher,
 {
     /// Add another counter to this counter.
     ///

@@ -280,23 +280,24 @@ mod impls;
 use num_traits::{One, Zero};
 
 use std::collections::{BinaryHeap, HashMap};
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash, RandomState};
 use std::iter;
 use std::ops::{AddAssign, SubAssign};
 #[cfg(test)]
 mod unit_tests;
 
 #[derive(Clone, Debug)]
-pub struct Counter<T, N = usize> {
-    map: HashMap<T, N>,
+pub struct Counter<T, N = usize, S = RandomState> {
+    map: HashMap<T, N, S>,
     // necessary for `Index::index` since we cannot declare generic `static` variables.
     zero: N,
 }
 
-impl<T, N> PartialEq for Counter<T, N>
+impl<T, N, S> PartialEq for Counter<T, N, S>
 where
     T: Eq + Hash,
     N: PartialEq,
+    S: BuildHasher,
 {
     fn eq(&self, other: &Self) -> bool {
         // ignore the zero
@@ -304,10 +305,11 @@ where
     }
 }
 
-impl<T, N> Eq for Counter<T, N>
+impl<T, N, S> Eq for Counter<T, N, S>
 where
     T: Eq + Hash,
     N: Eq,
+    S: BuildHasher,
 {
 }
 
@@ -342,10 +344,11 @@ impl<T, N> Counter<T, N> {
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
+    S: BuildHasher,
 {
     /// Add the counts of the elements from the given iterable to this counter.
     pub fn update<I>(&mut self, iterable: I)
@@ -359,10 +362,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + SubAssign + Zero + One,
+    S: BuildHasher,
 {
     /// Remove the counts of the elements from the given iterable to this counter.
     ///
@@ -395,7 +399,7 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq + Clone,
     N: Clone + Ord,
@@ -447,7 +451,7 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq + Clone + Ord,
     N: Clone + Ord,
@@ -556,10 +560,11 @@ where
     }
 }
 
-impl<T, N> Counter<T, N>
+impl<T, N, S> Counter<T, N, S>
 where
     T: Hash + Eq,
     N: PartialOrd + Zero,
+    S: BuildHasher,
 {
     /// Test whether this counter is a superset of another counter.
     /// This is true if for all elements in this counter and the other,

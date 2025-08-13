@@ -2,15 +2,16 @@ use crate::Counter;
 
 use num_traits::Zero;
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::{BitOr, BitOrAssign};
 
-impl<T, N> BitOr for Counter<T, N>
+impl<T, N, S> BitOr for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Ord + Zero,
+    S: BuildHasher,
 {
-    type Output = Counter<T, N>;
+    type Output = Counter<T, N, S>;
 
     /// Returns the union of `self` and `rhs` as a new `Counter`.
     ///
@@ -27,7 +28,7 @@ where
     /// let expect = [('a', 3), ('b', 2)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(e.into_map(), expect);
     /// ```
-    fn bitor(mut self, rhs: Counter<T, N>) -> Self::Output {
+    fn bitor(mut self, rhs: Counter<T, N, S>) -> Self::Output {
         for (key, rhs_value) in rhs.map {
             let entry = self.map.entry(key).or_insert_with(N::zero);
             // We want to update the value of the now occupied entry in `self` with the maximum of
@@ -54,10 +55,11 @@ where
     }
 }
 
-impl<T, N> BitOrAssign for Counter<T, N>
+impl<T, N, S> BitOrAssign for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: Ord + Zero,
+    S: BuildHasher,
 {
     /// Updates `self` with the union of `self` and `rhs`
     ///
@@ -74,7 +76,7 @@ where
     /// let expect = [('a', 3), ('b', 2)].iter().cloned().collect::<HashMap<_, _>>();
     /// assert_eq!(c.into_map(), expect);
     /// ```
-    fn bitor_assign(&mut self, mut rhs: Counter<T, N>) {
+    fn bitor_assign(&mut self, mut rhs: Counter<T, N, S>) {
         for (key, rhs_count) in rhs.drain() {
             if rhs_count > self[&key] {
                 self.map.insert(key, rhs_count);

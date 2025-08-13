@@ -2,13 +2,14 @@ use crate::Counter;
 
 use num_traits::{One, Zero};
 
-use std::hash::Hash;
+use std::hash::{BuildHasher, Hash};
 use std::ops::AddAssign;
 
-impl<T, N> Extend<T> for Counter<T, N>
+impl<T, N, S> Extend<T> for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero + One,
+    S: BuildHasher,
 {
     /// Extend a `Counter` with an iterator of items.
     ///
@@ -25,10 +26,11 @@ where
     }
 }
 
-impl<T, N> Extend<(T, N)> for Counter<T, N>
+impl<T, N, S> Extend<(T, N)> for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero,
+    S: BuildHasher,
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
@@ -50,10 +52,11 @@ where
     }
 }
 
-impl<'a, T: 'a, N: 'a> Extend<(&'a T, &'a N)> for Counter<T, N>
+impl<'a, T: 'a, N: 'a, S> Extend<(&'a T, &'a N)> for Counter<T, N, S>
 where
     T: Hash + Eq + Clone,
     N: AddAssign + Zero + Clone,
+    S: BuildHasher,
 {
     /// Extend a counter with `(item, count)` tuples.
     ///
