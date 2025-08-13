@@ -20,4 +20,5 @@ rand = "0.8.5"
 serde_json = "1.0.107"
 
 [workspace.metadata.release]
-pre-release-hook = ["git", "cliff", "-o", "CHANGELOG.md", "--tag", "{{version}}"]
+# ensure we have run `git-cliff` recently, but do not clobber existing documentation
+pre-release-hook = ["rg", "-Fw", "{{version}}", "CHANGELOG.md"]

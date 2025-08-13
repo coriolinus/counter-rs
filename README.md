@@ -263,4 +263,11 @@ let expected: HashMap<char, i8> = [('a', 1), ('b', 2), ('c', 3)].iter().cloned()
 assert!(counter.into_map() == expected);
 ```
 
+## Releasing
+
+1. Run `git cliff --bump` and copy the appropriate data into `CHANGELOG.md`
+2. Run `cargo release "$(git cliff --bumped-version | cut -c2-)"`; if all is good, rerun with `--execute`
+
+## Metadata
+
 License: MIT
