@@ -85,14 +85,14 @@ mod tests {
     /// distributions of data than the other test does.
     #[test]
     fn test_k_most_common_ordered_heavy() {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         for container_size in [5, 10, 25, 100, 256] {
             for max_value_factor in [0.25, 0.5, 1.0, 1.25, 2.0, 10.0, 100.0] {
                 let max_value = ((container_size as f64) * max_value_factor) as u32;
                 let mut values = vec![0; container_size];
                 for value in values.iter_mut() {
-                    *value = rng.gen_range(0..=max_value);
+                    *value = rng.random_range(0..=max_value);
                 }
 
                 let counter: Counter<_> = values.into_iter().collect();
