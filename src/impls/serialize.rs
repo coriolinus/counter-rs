@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::hash::{Hash, BuildHasher};
 
 use num_traits::Zero;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
@@ -22,7 +22,7 @@ impl<'de, T, N, St> Deserialize<'de> for Counter<T, N, St>
 where
     T: Deserialize<'de> + Hash + Eq,
     N: Deserialize<'de> + Zero,
-    St: Default,
+    St: Default + BuildHasher,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
