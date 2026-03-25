@@ -1,3 +1,14 @@
+## [0.7.1] - 2026-03-25
+
+### 🐛 Bug Fixes
+
+- Error[E0277]: the trait bound St: BuildHasher is not satisfied
+
+### ⚙️ Miscellaneous Tasks
+
+- Extend release docs to include github release
+- Upgrade dependencies
+
 ## [0.7.0] - 2025-08-13
 
 ### 🚀 Features
