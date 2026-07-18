@@ -279,6 +279,7 @@ mod impls;
 
 use num_traits::{One, Zero};
 
+use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::{BuildHasher, Hash, RandomState};
 use std::iter;
@@ -296,19 +297,37 @@ pub struct Counter<T, N = usize, S = RandomState> {
 impl<T, N, S> PartialEq for Counter<T, N, S>
 where
     T: Eq + Hash,
-    N: PartialEq,
+    N: PartialEq + Zero,
     S: BuildHasher,
 {
     fn eq(&self, other: &Self) -> bool {
-        // ignore the zero
-        self.map == other.map
+        self.keys().chain(other.keys()).all(|k| self[k] == other[k])
+    }
+}
+
+impl<T, N, S> PartialOrd for Counter<T, N, S>
+where
+    T: Eq + Hash,
+    N: PartialOrd + Zero,
+    S: BuildHasher,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let keys = self.keys().chain(other.keys());
+        let le = keys.clone().all(|k| self[k] <= other[k]);
+        let ge = keys.clone().all(|k| self[k] >= other[k]);
+        match (le, ge) {
+            (true, true) => Some(Ordering::Equal),
+            (true, false) => Some(Ordering::Less),
+            (false, true) => Some(Ordering::Greater),
+            (false, false) => None,
+        }
     }
 }
 
 impl<T, N, S> Eq for Counter<T, N, S>
 where
     T: Eq + Hash,
-    N: Eq,
+    N: Eq + Zero,
     S: BuildHasher,
 {
 }
@@ -570,8 +589,6 @@ where
     /// This is true if for all elements in this counter and the other,
     /// the count in this counter is greater than or equal to the count in the other.
     ///
-    /// `c.is_superset(&d);` -> `c.iter().all(|(x, n)| n >= d[x]) && d.iter().all(|(x, n)| c[x] >= n)`
-    ///
     /// ```rust
     /// # use counter::Counter;
     /// # use std::collections::HashMap;
@@ -583,19 +600,15 @@ where
     /// assert!(!c.is_superset(&d));
     /// ```
     pub fn is_superset(&self, other: &Self) -> bool {
-        // need to test keys from both counters, because if N is signed, counts in `self`
-        // could be < 0 for elements missing in `other`. For the unsigned case, only elements
-        // from `other` would need to be tested.
-        self.keys()
-            .chain(other.keys())
-            .all(|key| self[key] >= other[key])
+        match self.partial_cmp(other) {
+            Some(Ordering::Greater | Ordering::Equal) => true,
+            _ => false,
+        }
     }
 
     /// Test whether this counter is a subset of another counter.
     /// This is true if for all elements in this counter and the other,
     /// the count in this counter is less than or equal to the count in the other.
-    ///
-    /// `c.is_subset(&d);` -> `c.iter().all(|(x, n)| n <= d[x]) && d.iter().all(|(x, n)| c[x] <= n)`
     ///
     /// ```rust
     /// # use counter::Counter;
@@ -608,11 +621,9 @@ where
     /// assert!(!c.is_subset(&d));
     /// ```
     pub fn is_subset(&self, other: &Self) -> bool {
-        // need to test keys from both counters, because if N is signed, counts in `other`
-        // could be < 0 for elements missing in `self`. For the unsigned case, only elements
-        // from `self` would need to be tested.
-        self.keys()
-            .chain(other.keys())
-            .all(|key| self[key] <= other[key])
+        match self.partial_cmp(other) {
+            Some(Ordering::Less | Ordering::Equal) => true,
+            _ => false,
+        }
     }
 }
