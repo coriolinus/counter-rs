@@ -600,10 +600,7 @@ where
     /// assert!(!c.is_superset(&d));
     /// ```
     pub fn is_superset(&self, other: &Self) -> bool {
-        match self.partial_cmp(other) {
-            Some(Ordering::Greater | Ordering::Equal) => true,
-            _ => false,
-        }
+        self >= other
     }
 
     /// Test whether this counter is a subset of another counter.
@@ -621,9 +618,6 @@ where
     /// assert!(!c.is_subset(&d));
     /// ```
     pub fn is_subset(&self, other: &Self) -> bool {
-        match self.partial_cmp(other) {
-            Some(Ordering::Less | Ordering::Equal) => true,
-            _ => false,
-        }
+        self <= other
     }
 }
