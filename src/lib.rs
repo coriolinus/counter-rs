@@ -279,6 +279,7 @@ mod impls;
 
 use num_traits::{One, Zero};
 
+use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::{BuildHasher, Hash, RandomState};
 use std::iter;
@@ -296,19 +297,41 @@ pub struct Counter<T, N = usize, S = RandomState> {
 impl<T, N, S> PartialEq for Counter<T, N, S>
 where
     T: Eq + Hash,
-    N: PartialEq,
+    N: PartialEq + Zero,
     S: BuildHasher,
 {
     fn eq(&self, other: &Self) -> bool {
-        // ignore the zero
-        self.map == other.map
+        self.keys().chain(other.keys()).all(|k| self[k] == other[k])
+    }
+}
+
+impl<T, N, S> PartialOrd for Counter<T, N, S>
+where
+    T: Eq + Hash,
+    N: PartialOrd + Zero,
+    S: BuildHasher,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let (mut le, mut ge) = (true, true);
+
+        for key in self.keys().chain(other.keys()) {
+            le &= self[key] <= other[key];
+            ge &= self[key] >= other[key];
+        }
+
+        match (le, ge) {
+            (true, true) => Some(Ordering::Equal),
+            (true, false) => Some(Ordering::Less),
+            (false, true) => Some(Ordering::Greater),
+            (false, false) => None,
+        }
     }
 }
 
 impl<T, N, S> Eq for Counter<T, N, S>
 where
     T: Eq + Hash,
-    N: Eq,
+    N: Eq + Zero,
     S: BuildHasher,
 {
 }
@@ -583,12 +606,7 @@ where
     /// assert!(!c.is_superset(&d));
     /// ```
     pub fn is_superset(&self, other: &Self) -> bool {
-        // need to test keys from both counters, because if N is signed, counts in `self`
-        // could be < 0 for elements missing in `other`. For the unsigned case, only elements
-        // from `other` would need to be tested.
-        self.keys()
-            .chain(other.keys())
-            .all(|key| self[key] >= other[key])
+        self >= other
     }
 
     /// Test whether this counter is a subset of another counter.
@@ -608,11 +626,6 @@ where
     /// assert!(!c.is_subset(&d));
     /// ```
     pub fn is_subset(&self, other: &Self) -> bool {
-        // need to test keys from both counters, because if N is signed, counts in `other`
-        // could be < 0 for elements missing in `self`. For the unsigned case, only elements
-        // from `self` would need to be tested.
-        self.keys()
-            .chain(other.keys())
-            .all(|key| self[key] <= other[key])
+        self <= other
     }
 }

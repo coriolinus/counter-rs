@@ -239,3 +239,12 @@ fn test_non_usize_count() {
     };
     assert!(counter.map == expected);
 }
+
+#[test]
+fn test_superset() {
+    let c1: Counter<_> = "ab".chars().collect();
+    let c2: Counter<_> = "a".chars().collect();
+    assert_ne!(c1, c2);
+    assert!(c1 >= c2);
+    assert!(c1 > c2);
+}
