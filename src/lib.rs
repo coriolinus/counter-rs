@@ -589,6 +589,8 @@ where
     /// This is true if for all elements in this counter and the other,
     /// the count in this counter is greater than or equal to the count in the other.
     ///
+    /// `c.is_superset(&d);` -> `c.iter().all(|(x, n)| n >= d[x]) && d.iter().all(|(x, n)| c[x] >= n)`
+    ///
     /// ```rust
     /// # use counter::Counter;
     /// # use std::collections::HashMap;
@@ -606,6 +608,8 @@ where
     /// Test whether this counter is a subset of another counter.
     /// This is true if for all elements in this counter and the other,
     /// the count in this counter is less than or equal to the count in the other.
+    ///
+    /// `c.is_subset(&d);` -> `c.iter().all(|(x, n)| n <= d[x]) && d.iter().all(|(x, n)| c[x] <= n)`
     ///
     /// ```rust
     /// # use counter::Counter;
