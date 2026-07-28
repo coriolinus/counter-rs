@@ -312,9 +312,13 @@ where
     S: BuildHasher,
 {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let keys = self.keys().chain(other.keys());
-        let le = keys.clone().all(|k| self[k] <= other[k]);
-        let ge = keys.clone().all(|k| self[k] >= other[k]);
+        let (mut le, mut ge) = (true, true);
+
+        for key in self.keys().chain(other.keys()) {
+            le &= self[key] <= other[key];  
+            ge &= self[key] >= other[key];
+        }
+        
         match (le, ge) {
             (true, true) => Some(Ordering::Equal),
             (true, false) => Some(Ordering::Less),
