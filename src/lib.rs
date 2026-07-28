@@ -315,10 +315,10 @@ where
         let (mut le, mut ge) = (true, true);
 
         for key in self.keys().chain(other.keys()) {
-            le &= self[key] <= other[key];  
+            le &= self[key] <= other[key];
             ge &= self[key] >= other[key];
         }
-        
+
         match (le, ge) {
             (true, true) => Some(Ordering::Equal),
             (true, false) => Some(Ordering::Less),
