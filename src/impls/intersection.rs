@@ -31,7 +31,7 @@ where
     fn bitand(self, mut rhs: Counter<T, N, S>) -> Self::Output {
         use std::cmp::min;
 
-        let mut counter = Counter::new();
+        let mut counter = Counter::with_hasher(S::default());
         for (key, lhs_count) in self.map {
             if let Some(rhs_count) = rhs.remove(&key) {
                 let count = min(lhs_count, rhs_count);

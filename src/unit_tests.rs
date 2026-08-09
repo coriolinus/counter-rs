@@ -1,6 +1,7 @@
 use crate::Counter;
 use maplit::hashmap;
 use std::collections::HashMap;
+use std::hash::RandomState;
 #[test]
 fn test_creation() {
     let _: Counter<usize> = Counter::new();
@@ -14,8 +15,30 @@ fn test_creation() {
 }
 
 #[test]
+fn test_creation_without_naming_the_hasher() {
+    // `new` fixes the hasher to `RandomState`, so neither a turbofish nor an explicit
+    // type annotation is required here.
+    let mut counter = Counter::new();
+    counter.update("aaa".chars());
+    assert_eq!(counter.map, hashmap! {'a' => 3usize});
+}
+
+#[test]
 fn test_creation_with_capacity() {
     let counter: Counter<usize, usize> = Counter::with_capacity(3);
+    assert_eq!(counter.map.capacity(), 3);
+}
+
+#[test]
+fn test_creation_with_hasher() {
+    let mut counter = Counter::with_hasher(RandomState::new());
+    counter.update("aaa".chars());
+    assert_eq!(counter.map, hashmap! {'a' => 3usize});
+}
+
+#[test]
+fn test_creation_with_capacity_and_hasher() {
+    let counter: Counter<usize, usize> = Counter::with_capacity_and_hasher(3, RandomState::new());
     assert_eq!(counter.map.capacity(), 3);
 }
 
