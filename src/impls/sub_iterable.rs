@@ -31,11 +31,12 @@ where
     }
 }
 
-impl<I, T, N> SubAssign<I> for Counter<T, N>
+impl<I, T, N, S> SubAssign<I> for Counter<T, N, S>
 where
     I: IntoIterator<Item = T>,
     T: Hash + Eq,
     N: PartialOrd + SubAssign + Zero + One,
+    S: BuildHasher,
 {
     /// Directly subtract the counts of the elements of `I` from `self`,
     /// keeping only items with a value greater than [`N::zero()`].

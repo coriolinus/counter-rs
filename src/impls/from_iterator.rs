@@ -2,6 +2,7 @@ use crate::Counter;
 
 use num_traits::{One, Zero};
 
+use std::collections::HashMap;
 use std::hash::{BuildHasher, Hash};
 use std::iter;
 use std::ops::AddAssign;
@@ -49,10 +50,11 @@ where
     }
 }
 
-impl<T, N> iter::FromIterator<(T, N)> for Counter<T, N>
+impl<T, N, S> iter::FromIterator<(T, N)> for Counter<T, N, S>
 where
     T: Hash + Eq,
     N: AddAssign + Zero,
+    S: BuildHasher + Default,
 {
     /// Creates a counter from `(item, count)` tuples.
     ///
@@ -67,7 +69,10 @@ where
     /// assert_eq!(counter.into_map(), expect);
     /// ```
     fn from_iter<I: IntoIterator<Item = (T, N)>>(iter: I) -> Self {
-        let mut cnt = Counter::new();
+        let mut cnt = Counter {
+            map: HashMap::with_hasher(S::default()),
+            zero: N::zero(),
+        };
         for (item, item_count) in iter {
             let entry = cnt.map.entry(item).or_insert_with(N::zero);
             *entry += item_count;
