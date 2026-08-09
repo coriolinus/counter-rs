@@ -43,7 +43,7 @@ where
     /// ```
     ///
     fn from_iter<I: IntoIterator<Item = T>>(iterable: I) -> Self {
-        let mut counter = Counter::new();
+        let mut counter = Counter::with_hasher(S::default());
         counter.update(iterable);
         counter
     }

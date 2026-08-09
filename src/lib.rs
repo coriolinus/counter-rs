@@ -23,6 +23,20 @@
 //! let counts_counts = char_counts.values().collect::<Counter<_>>();
 //! ```
 //!
+//! ## Start from an empty counter
+//!
+//! [`Counter::new`] produces an empty counter which uses the default hasher, so the hasher type
+//! never has to be named. See [Use a custom hasher](#use-a-custom-hasher) to choose another one.
+//!
+//! ```rust
+//! # use counter::Counter;
+//! # use std::collections::HashMap;
+//! let mut counts = Counter::new();
+//! counts.update("aaa".chars());
+//! let expect = [('a', 3)].into_iter().collect::<HashMap<char, usize>>();
+//! assert_eq!(counts.into_map(), expect);
+//! ```
+//!
 //! ## Update a count
 //!
 //! ```rust
@@ -272,6 +286,25 @@
 //! let counter: Counter<_, i8> = "abbccc".chars().collect();
 //! let expected: HashMap<char, i8> = [('a', 1), ('b', 2), ('c', 3)].iter().cloned().collect();
 //! assert!(counter.into_map() == expected);
+//! ```
+//!
+//! ## Use a custom hasher
+//!
+//! `Counter<T, N, S>` is generic over the [`BuildHasher`] `S`, which defaults to [`RandomState`].
+//! Any other hasher can be supplied to [`Counter::with_hasher`] or
+//! [`Counter::with_capacity_and_hasher`]; counters built by [`Counter::new`],
+//! [`Counter::with_capacity`], and `collect` use the default hasher.
+//!
+//! [`BuildHasher`]: https://doc.rust-lang.org/stable/std/hash/trait.BuildHasher.html
+//! [`RandomState`]: https://doc.rust-lang.org/stable/std/hash/struct.RandomState.html
+//!
+//! ```rust
+//! # use counter::Counter;
+//! # use std::hash::RandomState;
+//! // `RandomState` stands in here for the hasher of your choice
+//! let mut counter: Counter<char, usize, RandomState> = Counter::with_hasher(RandomState::new());
+//! counter.update("abbccc".chars());
+//! assert_eq!(counter[&'c'], 3);
 //! ```
 
 #![allow(clippy::must_use_candidate)]

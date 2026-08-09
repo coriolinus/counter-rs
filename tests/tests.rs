@@ -216,6 +216,22 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_custom_hasher_constructors() {
+        let mut counter: Counter<char, usize, TestBuildHasher> =
+            Counter::with_hasher(TestBuildHasher);
+        counter.update("abbccc".chars());
+        assert_eq!(counter[&'c'], 3);
+        assert_eq!(
+            counter.deref().hasher().type_id(),
+            TestBuildHasher.type_id()
+        );
+
+        let with_capacity: Counter<char, usize, TestBuildHasher> =
+            Counter::with_capacity_and_hasher(3, TestBuildHasher);
+        assert!(with_capacity.deref().capacity() >= 3);
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_serialize_deserialize() {
