@@ -216,6 +216,29 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_custom_hasher_is_not_restricted() {
+        let mut counter = "abbccc"
+            .chars()
+            .collect::<Counter<_, usize, TestBuildHasher>>();
+
+        // `SubAssign<I>`, `total`, and `FromIterator<(T, N)>` used to be available only for the
+        // default hasher.
+        counter -= "abb".chars();
+        assert_eq!(counter.total::<usize>(), 3);
+
+        let from_pairs = [('a', 1), ('b', 2)]
+            .into_iter()
+            .collect::<Counter<char, usize, TestBuildHasher>>();
+        assert_eq!(from_pairs.total::<usize>(), 3);
+
+        // `into_map` hands back a map which still uses the counter's hasher.
+        assert_eq!(
+            from_pairs.into_map().hasher().type_id(),
+            TestBuildHasher.type_id()
+        );
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_serialize_deserialize() {

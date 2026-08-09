@@ -336,11 +336,13 @@ where
 {
 }
 
-impl<T, N> Counter<T, N> {
+impl<T, N, S> Counter<T, N, S> {
     /// Consumes this counter and returns a [`HashMap`] mapping the items to the counts.
     ///
+    /// The returned map keeps the hasher of the counter it came from.
+    ///
     /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
-    pub fn into_map(self) -> HashMap<T, N> {
+    pub fn into_map(self) -> HashMap<T, N, S> {
         self.map
     }
 
@@ -359,9 +361,9 @@ impl<T, N> Counter<T, N> {
     /// assert_eq!(counter.total::<usize>(), 11);
     /// assert_eq!(counter.len(), 5);
     /// ```
-    pub fn total<'a, S>(&'a self) -> S
+    pub fn total<'a, Total>(&'a self) -> Total
     where
-        S: iter::Sum<&'a N>,
+        Total: iter::Sum<&'a N>,
     {
         self.map.values().sum()
     }
